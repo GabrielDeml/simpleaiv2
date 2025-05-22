@@ -33,8 +33,10 @@ function ControlPanel({
         {isTraining && <span className="loading-indicator" aria-hidden="true"></span>}
         {isTraining ? (
           `Training... (${trainingProgress.epoch}/${trainingProgress.totalEpochs})`
-        ) : (
+        ) : canTrain ? (
           'Train Model'
+        ) : (
+          'Create Model First'
         )}
       </button>
       

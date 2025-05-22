@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import * as tf from '@tensorflow/tfjs';
 import { createMNISTModel, trainMNISTModel, evaluateModel, predictSingle } from '../utils/mnistModelUtils.js';
+import { createDynamicModel } from '../utils/dynamicModelUtils.js';
 
 /**
  * Custom hook for managing MNIST model training and inference
@@ -20,9 +21,17 @@ export function useMNISTModel() {
   /**
    * Create a new model
    */
-  const createModel = useCallback(() => {
+  const createModel = useCallback((layerConfig = null) => {
     try {
-      const newModel = createMNISTModel();
+      let newModel;
+      if (layerConfig && layerConfig.length > 0) {
+        // Create dynamic model from layer configuration
+        newModel = createDynamicModel(layerConfig);
+      } else {
+        // Create default model
+        newModel = createMNISTModel();
+      }
+      
       setModel(newModel);
       currentModelRef.current = newModel;
       setError(null);

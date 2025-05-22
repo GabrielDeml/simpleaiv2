@@ -10,6 +10,7 @@ import ControlPanel from './ControlPanel.jsx';
 import ImageCanvas from './ImageCanvas.jsx';
 import TrainingLogs from './TrainingLogs.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
+import ModelBuilder from './ModelBuilder/ModelBuilder.jsx';
 
 // Styles
 import './MNISTTrainer.css';
@@ -48,6 +49,8 @@ function MNISTTrainer() {
   // Local state for UI interactions
   const [logs, setLogs] = useState([]);
   const [currentSample, setCurrentSample] = useState(null);
+  const [currentArchitecture, setCurrentArchitecture] = useState(null);
+  const [architectureValid, setArchitectureValid] = useState(false);
   
   // Canvas reference
   const canvasRef = useRef(null);
@@ -61,12 +64,36 @@ function MNISTTrainer() {
   }, []);
 
   /**
+   * Handle model architecture changes from ModelBuilder
+   */
+  const handleModelChange = useCallback((layers, isValid) => {
+    setCurrentArchitecture(layers);
+    setArchitectureValid(isValid);
+    
+    if (isValid && layers.length > 1) {
+      addLog(`Architecture updated: ${layers.length} layers, ${layers.filter(l => l.type === 'dense').length} dense layers`);
+    }
+  }, [addLog]);
+
+  /**
    * Handle model training
    */
   const handleTrain = useCallback(async () => {
     if (!trainData) {
       addLog('Error: Training data not available');
       return;
+    }
+
+    // Create model with current architecture if available
+    if (currentArchitecture && architectureValid && !model) {
+      try {
+        addLog('Creating model from architecture...');
+        createModel(currentArchitecture);
+        addLog('Model created successfully!');
+      } catch (error) {
+        addLog(`Failed to create model: ${error.message}`);
+        return;
+      }
     }
 
     try {
@@ -87,7 +114,7 @@ function MNISTTrainer() {
     } catch (error) {
       addLog(`Training failed: ${error.message}`);
     }
-  }, [trainData, trainModel, trainingHistory, addLog, clearError]);
+  }, [trainData, trainModel, trainingHistory, addLog, clearError, currentArchitecture, architectureValid, model, createModel]);
 
   /**
    * Handle model testing
@@ -167,7 +194,7 @@ function MNISTTrainer() {
   }, [clearError]);
 
   // Determine component states
-  const canTrain = !!(trainData && !isTraining);
+  const canTrain = !!(trainData && !isTraining && (model || (currentArchitecture && architectureValid)));
   const canTest = !!(model && testData && !isTesting);
   const canDraw = !!(testData && !isDataLoading);
   const hasError = !!(dataError || modelError);
@@ -200,6 +227,11 @@ function MNISTTrainer() {
             </div>
           )}
           
+          {/* Model Builder */}
+          <ModelBuilder
+            onModelChange={handleModelChange}
+          />
+
           {/* Control Panel */}
           <ControlPanel
             onTrain={handleTrain}
