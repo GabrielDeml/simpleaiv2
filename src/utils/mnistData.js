@@ -32,7 +32,7 @@ export class MnistData {
       
       try {
         await imageLoadPromise;
-      } catch (e) {
+      } catch {
         // Fallback to alternative source
         console.log('Primary source failed, trying alternative...');
         img.src = ALT_IMAGES_PATH;
@@ -128,7 +128,7 @@ export class MnistData {
       try {
         labelsResponse = await fetch(MNIST_LABELS_PATH);
         if (!labelsResponse.ok) throw new Error('Labels fetch failed');
-      } catch (e) {
+      } catch {
         console.log('Primary labels failed, trying alternative...');
         labelsResponse = await fetch(ALT_LABELS_PATH);
       }

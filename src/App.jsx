@@ -1,10 +1,13 @@
 import './App.css'
 import MNISTTrainer from './components/MNISTTrainer'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   return (
     <div className="App">
-      <MNISTTrainer />
+      <ErrorBoundary>
+        <MNISTTrainer />
+      </ErrorBoundary>
     </div>
   )
 }
