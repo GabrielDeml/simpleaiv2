@@ -1,5 +1,5 @@
-import MNISTTrainer from './components/MNISTTrainer'
 import './App.css'
+import MNISTTrainer from './components/MNISTTrainer'
 
 function App() {
   return (

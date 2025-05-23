@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIST Model Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-line;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        canvas {
+            border: 2px solid #4CAF50;
+            background: black;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>MNIST Model Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Model Creation and Training</h2>
+        <button id="trainBtn" onclick="runTrainingTest()">Run Training Test</button>
+        <div id="trainLog" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Canvas Drawing Test</h2>
+        <p>Draw a digit below to test prediction:</p>
+        <canvas id="testCanvas" width="280" height="280"></canvas>
+        <br>
+        <button onclick="clearCanvas()">Clear</button>
+        <button id="predictBtn" onclick="testCanvasPrediction()" disabled>Predict</button>
+        <div id="canvasLog" class="log"></div>
+    </div>
+
+    <script>
+        let model = null;
+        let isDrawing = false;
+        const canvas = document.getElementById('testCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Initialize canvas
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Canvas drawing functions
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            draw(e);
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) draw(e);
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            ctx.beginPath();
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            isDrawing = false;
+        });
+
+        function draw(e) {
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineWidth = 15;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = 'white';
+            
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function log(elementId, message) {
+            const logElement = document.getElementById(elementId);
+            logElement.textContent += message + '\n';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function createModel() {
+            const model = tf.sequential({
+                layers: [
+                    tf.layers.conv2d({
+                        inputShape: [28, 28, 1],
+                        kernelSize: 3,
+                        filters: 32,
+                        activation: 'relu'
+                    }),
+                    tf.layers.maxPooling2d({ poolSize: 2 }),
+                    tf.layers.conv2d({
+                        kernelSize: 3,
+                        filters: 64,
+                        activation: 'relu'
+                    }),
+                    tf.layers.maxPooling2d({ poolSize: 2 }),
+                    tf.layers.flatten(),
+                    tf.layers.dropout({ rate: 0.2 }),
+                    tf.layers.dense({
+                        units: 128,
+                        activation: 'relu'
+                    }),
+                    tf.layers.dense({
+                        units: 10,
+                        activation: 'softmax'
+                    })
+                ]
+            });
+
+            model.compile({
+                optimizer: 'adam',
+                loss: 'categoricalCrossentropy',
+                metrics: ['accuracy']
+            });
+
+            return model;
+        }
+
+        async function runTrainingTest() {
+            const trainBtn = document.getElementById('trainBtn');
+            trainBtn.disabled = true;
+            document.getElementById('trainLog').textContent = '';
+            
+            log('trainLog', 'Creating model...');
+            model = createModel();
+            
+            log('trainLog', 'Model created successfully!');
+            log('trainLog', '\nGenerating synthetic training data...');
+            
+            // Create synthetic MNIST-like data
+            const numSamples = 500;
+            const batchSize = 32;
+            
+            // Generate more realistic synthetic data
+            const trainImages = tf.tidy(() => {
+                // Create base noise
+                const noise = tf.randomNormal([numSamples, 28, 28, 1], 0, 0.1);
+                
+                // Add some structure to make it more MNIST-like
+                const structured = noise.add(tf.randomUniform([numSamples, 28, 28, 1], 0, 0.5));
+                
+                // Clip values to [0, 1]
+                return structured.clipByValue(0, 1);
+            });
+            
+            // Create random labels
+            const labels = tf.randomUniform([numSamples], 0, 10, 'int32');
+            const trainLabels = tf.oneHot(labels, 10);
+            
+            log('trainLog', `Training data shape: ${trainImages.shape}`);
+            log('trainLog', `Training labels shape: ${trainLabels.shape}`);
+            
+            log('trainLog', '\nTraining model for 5 epochs...');
+            
+            await model.fit(trainImages, trainLabels, {
+                epochs: 5,
+                batchSize: batchSize,
+                validationSplit: 0.2,
+                shuffle: true,
+                callbacks: {
+                    onEpochEnd: (epoch, logs) => {
+                        log('trainLog', `Epoch ${epoch + 1}/5 - Loss: ${logs.loss.toFixed(4)}, Accuracy: ${(logs.acc * 100).toFixed(2)}%, Val Loss: ${logs.val_loss.toFixed(4)}, Val Accuracy: ${(logs.val_acc * 100).toFixed(2)}%`);
+                    }
+                }
+            });
+            
+            log('trainLog', '\nTesting predictions on random samples...');
+            
+            // Test multiple predictions
+            const predictions = [];
+            for (let i = 0; i < 10; i++) {
+                const testImage = tf.randomNormal([1, 28, 28, 1]);
+                const prediction = await model.predict(testImage).data();
+                const predictedDigit = prediction.indexOf(Math.max(...prediction));
+                predictions.push(predictedDigit);
+                testImage.dispose();
+            }
+            
+            log('trainLog', `Predictions: [${predictions.join(', ')}]`);
+            
+            const uniquePredictions = [...new Set(predictions)];
+            log('trainLog', `Unique predictions: [${uniquePredictions.join(', ')}]`);
+            
+            if (uniquePredictions.length === 1) {
+                log('trainLog', '\n⚠️  WARNING: Model is only predicting one value! This might indicate an issue.');
+            } else {
+                log('trainLog', '\n✅ SUCCESS: Model is making varied predictions!');
+            }
+            
+            // Cleanup
+            trainImages.dispose();
+            trainLabels.dispose();
+            labels.dispose();
+            
+            // Enable prediction button
+            document.getElementById('predictBtn').disabled = false;
+            trainBtn.disabled = false;
+            
+            log('trainLog', '\nModel is ready for canvas predictions!');
+        }
+
+        async function testCanvasPrediction() {
+            if (!model) {
+                log('canvasLog', 'Please train the model first!');
+                return;
+            }
+            
+            document.getElementById('canvasLog').textContent = '';
+            log('canvasLog', 'Processing canvas image...');
+            
+            // Get image data and resize to 28x28
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 28;
+            tempCanvas.height = 28;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Fill with white background first (like MNIST)
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, 28, 28);
+            
+            // Draw the canvas content scaled down with inversion
+            tempCtx.filter = 'invert(1)';
+            tempCtx.drawImage(canvas, 0, 0, 28, 28);
+            
+            // Get image data
+            const imageData = tempCtx.getImageData(0, 0, 28, 28);
+            const data = imageData.data;
+            
+            // Process the image
+            const processedData = new Float32Array(28 * 28);
+            for (let i = 0; i < 28 * 28; i++) {
+                const pixelIndex = i * 4;
+                const grayValue = data[pixelIndex];
+                processedData[i] = (255 - grayValue) / 255.0;
+            }
+            
+            // Create tensor
+            const input = tf.tensor4d(processedData, [1, 28, 28, 1]);
+            
+            // Log input stats
+            const stats = tf.tidy(() => {
+                return {
+                    min: input.min().dataSync()[0],
+                    max: input.max().dataSync()[0],
+                    mean: input.mean().dataSync()[0]
+                };
+            });
+            
+            log('canvasLog', `Input tensor stats - Min: ${stats.min.toFixed(3)}, Max: ${stats.max.toFixed(3)}, Mean: ${stats.mean.toFixed(3)}`);
+            
+            const nonZeroPixels = processedData.filter(x => x > 0.1).length;
+            log('canvasLog', `Non-zero pixels: ${nonZeroPixels}`);
+            
+            // Make prediction
+            const output = await model.predict(input).data();
+            const predictedDigit = output.indexOf(Math.max(...output));
+            
+            log('canvasLog', '\nPrediction probabilities:');
+            output.forEach((prob, i) => {
+                const bar = '█'.repeat(Math.floor(prob * 20));
+                log('canvasLog', `${i}: ${bar} ${(prob * 100).toFixed(2)}%`);
+            });
+            
+            log('canvasLog', `\nPredicted digit: ${predictedDigit}`);
+            
+            // Show processed image
+            log('canvasLog', '\nProcessed image preview (data URL):');
+            log('canvasLog', tempCanvas.toDataURL().substring(0, 100) + '...');
+            
+            input.dispose();
+        }
+    </script>
+</body>
+</html>
