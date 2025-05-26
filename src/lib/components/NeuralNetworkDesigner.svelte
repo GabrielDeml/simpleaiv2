@@ -17,14 +17,18 @@
   // Control visibility of training progress modal
   let showTrainingProgress = false;
   
-  // Start training the neural network model
-  async function handleRun() {
-    try {
-      showTrainingProgress = true; // Show progress modal
-      await trainingManager.startTraining(); // Delegate to training manager
-    } catch (error) {
-      alert(`Training failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      showTrainingProgress = false; // Hide modal on error
+  // Start or stop training the neural network model
+  async function handleRunStop() {
+    if ($isTraining) {
+      trainingManager.stopTraining();
+    } else {
+      try {
+        showTrainingProgress = true; // Show progress modal
+        await trainingManager.startTraining(); // Delegate to training manager
+      } catch (error) {
+        alert(`Training failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        showTrainingProgress = false; // Hide modal on error
+      }
     }
   }
   
@@ -70,8 +74,11 @@
   <!-- Top toolbar with action buttons -->
   <div class="top-bar">
     <div class="toolbar">
-      <button class="btn btn-primary" on:click={handleRun} disabled={$isTraining}>
-        <span class="icon">▶</span> Run
+      <button class="btn {$isTraining ? 'btn-danger' : 'btn-primary'}" on:click={handleRunStop}>
+        <span class="icon">{$isTraining ? '⏹' : '▶'}</span> {$isTraining ? 'Stop' : 'Run'}
+      </button>
+      <button class="btn btn-training" on:click={() => showTrainingProgress = true}>
+        <span class="icon">📊</span> Show Training
       </button>
       <button class="btn btn-secondary" on:click={handleSave}>Save</button>
       <button class="btn btn-secondary" on:click={handleExport}>Export</button>
@@ -196,6 +203,16 @@
     background: #1a1a1a;
     color: #ef4444;
     border: 1px solid #333333;
+  }
+  
+  .btn-training {
+    background: linear-gradient(to right, #3b82f6, #1d4ed8);
+    color: white;
+  }
+  
+  .btn-training:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
   
   .model-name {

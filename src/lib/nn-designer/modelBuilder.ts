@@ -207,6 +207,12 @@ export class ModelBuilder {
    */
   stopTrainingProcess(): void {
     this.stopTraining = true;
+    // Immediately update the training state
+    isTraining.set(false);
+    // If model exists, try to stop it immediately
+    if (this.model) {
+      this.model.stopTraining = true;
+    }
   }
 
   /**
