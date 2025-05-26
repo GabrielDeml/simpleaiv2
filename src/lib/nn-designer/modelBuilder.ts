@@ -87,7 +87,9 @@ export class ModelBuilder {
           break;
 
         case 'flatten':
-          this.model.add(tf.layers.flatten());
+          this.model.add(tf.layers.flatten({
+            inputShape: isFirstLayer ? inputShape : undefined
+          }));
           break;
 
         case 'output':

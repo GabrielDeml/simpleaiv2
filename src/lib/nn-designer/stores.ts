@@ -1,5 +1,6 @@
 import { writable, derived } from 'svelte/store';
-import type { LayerConfig, TrainingConfig, DatasetType, ModelSummary } from './types';
+import type { LayerConfig, TrainingConfig, DatasetType, ModelSummary, ModelTemplate } from './types';
+import { modelTemplates } from './modelTemplates';
 
 /**
  * Main store for the neural network architecture.
@@ -192,4 +193,31 @@ export function resetTraining() {
     accuracy: [],
     valAccuracy: []
   });
+}
+
+/**
+ * Loads a model template by replacing the current layer configuration.
+ * Also updates the selected dataset to match the template's recommendation.
+ * @param template - The model template to load
+ */
+export function loadTemplate(template: ModelTemplate) {
+  // Update layers with template configuration
+  layers.set(template.layers);
+  
+  // Switch to recommended dataset
+  selectedDataset.set(template.recommendedDataset);
+  
+  // Clear current selection
+  selectedLayerId.set(null);
+  
+  // Reset training state
+  resetTraining();
+}
+
+/**
+ * Gets all available model templates.
+ * @returns Array of all model templates
+ */
+export function getAvailableTemplates(): ModelTemplate[] {
+  return modelTemplates;
 }

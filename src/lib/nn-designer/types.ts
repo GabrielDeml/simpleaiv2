@@ -142,6 +142,25 @@ export interface ModelSummary {
 }
 
 /**
+ * Model template for quick setup of common architectures.
+ * Provides pre-configured layer arrangements for common use cases.
+ */
+export interface ModelTemplate {
+  /** Unique identifier for the template */
+  id: string;
+  /** Human-readable name for display */
+  name: string;
+  /** Brief description of the template's purpose */
+  description: string;
+  /** Array of layer configurations that make up the template */
+  layers: LayerConfig[];
+  /** Recommended dataset type for this template */
+  recommendedDataset: DatasetType;
+  /** Template category for organization */
+  category: 'classification' | 'computer-vision' | 'custom';
+}
+
+/**
  * Available dataset types in the designer.
  * Each dataset has specific characteristics and preprocessing requirements.
  */

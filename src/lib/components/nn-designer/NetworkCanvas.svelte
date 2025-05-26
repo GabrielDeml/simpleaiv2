@@ -322,13 +322,7 @@
     inset: -8px;
     border: 2px dashed var(--layer-color);
     border-radius: 12px;
-    opacity: 0.5;
-    animation: rotate 10s linear infinite;
-  }
-  
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    opacity: 0.6;
   }
   
   .layer-accent {

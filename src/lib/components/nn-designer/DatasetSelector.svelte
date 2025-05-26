@@ -33,6 +33,9 @@
     { type: 'fashion-mnist', name: 'Fashion-MNIST', shape: '28×28', available: true, inputShape: [28, 28] }
   ];
   
+  // Collapsible state
+  let isExpanded = true;
+  
   /**
    * Handles dataset selection
    * @param type - The dataset type to select
@@ -65,10 +68,14 @@
 
 <!-- Dataset selector panel -->
 <div class="dataset-selector">
-  <h3>DATASET</h3>
+  <button class="section-header" on:click={() => isExpanded = !isExpanded}>
+    <span class="header-text">DATASET</span>
+    <span class="expand-icon" class:expanded={isExpanded}>▼</span>
+  </button>
   
-  <!-- List of available datasets -->
-  <div class="dataset-list">
+  {#if isExpanded}
+    <!-- List of available datasets -->
+    <div class="dataset-list">
     {#each datasets as dataset}
       <!-- 
         Radio button option for each dataset
@@ -99,43 +106,68 @@
       </label>
     {/each}
     
-    <!-- Upload button (placeholder for future functionality) -->
-    <button class="upload-btn" on:click={handleUpload}>
-      📁 Upload Custom Dataset
-    </button>
-  </div>
+      <!-- Upload button (placeholder for future functionality) -->
+      <button class="upload-btn" on:click={handleUpload}>
+        📁 Upload Custom Dataset
+      </button>
+    </div>
+  {/if}
 </div>
 
 <style>
   .dataset-selector {
-    padding: 20px 24px;
-    border-top: 1px solid #262626;
+    border-bottom: 1px solid #262626;
   }
-  
-  h3 {
+
+  .section-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: transparent;
+    border: none;
+    color: #737373;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .section-header:hover {
+    color: #a3a3a3;
+  }
+
+  .header-text {
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.5px;
-    color: #737373;
-    margin: 0 0 16px 0;
+  }
+
+  .expand-icon {
+    font-size: 10px;
+    transition: transform 0.2s;
+  }
+
+  .expand-icon.expanded {
+    transform: rotate(180deg);
   }
   
   .dataset-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    padding: 0 24px 16px 24px;
   }
   
   .dataset-option {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 10px 20px;
+    gap: 12px;
+    padding: 8px 12px;
     background: #171717;
     border: 1px solid #262626;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
   }
   
   .dataset-option.active {
@@ -157,8 +189,8 @@
   }
   
   .radio-icon {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     border: 1px solid #525252;
     position: relative;
@@ -175,15 +207,15 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
     background: white;
   }
   
   .dataset-name {
     flex: 1;
-    font-size: 13px;
+    font-size: 12px;
     color: #ffffff;
   }
   
@@ -192,7 +224,7 @@
   }
   
   .dataset-shape {
-    font-size: 11px;
+    font-size: 10px;
     color: #737373;
   }
   
@@ -201,15 +233,15 @@
   }
   
   .upload-btn {
-    padding: 10px;
+    padding: 8px;
     background: none;
     border: 1px dashed #525252;
-    border-radius: 8px;
+    border-radius: 6px;
     color: #737373;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
     opacity: 0.5;
-    transition: all 0.2s;
+    transition: all 0.15s;
   }
   
   .upload-btn:hover {

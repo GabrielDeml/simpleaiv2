@@ -20,6 +20,9 @@
   // Tracks which layer type is currently being dragged (for potential visual feedback)
   let draggedLayerType: LayerType | null = null;
   
+  // Collapsible state
+  let isExpanded = true;
+  
   /**
    * Handles the start of a drag operation
    * @param e - The drag event containing dataTransfer object
@@ -99,89 +102,119 @@
 
 <!-- Main container for the layer palette sidebar -->
 <div class="layer-palette">
-  <h3>LAYERS (Drag to add)</h3>
+  <button class="section-header" on:click={() => isExpanded = !isExpanded}>
+    <span class="header-text">LAYERS</span>
+    <span class="expand-icon" class:expanded={isExpanded}>▼</span>
+  </button>
   
-  <!-- Container for all layer cards -->
-  <div class="layer-cards">
-    <!-- Iterate through all available layer types from layerDefinitions -->
-    {#each Object.entries(layerDefinitions) as [type, definition]}
-      <!-- 
-        Individual layer card that can be dragged or clicked
-        - CSS custom property for dynamic coloring based on layer type
-        - draggable attribute enables HTML5 drag functionality
-        - Multiple event handlers for different interaction methods
-        - ARIA attributes for accessibility (role="button" + tabindex)
-      -->
-      <div
-        class="layer-card"
-        style="--layer-color: {definition.color}"
-        draggable="true"
-        on:dragstart={(e) => handleDragStart(e, type as LayerType)}
-        on:dragend={handleDragEnd}
-        on:click={() => handleClick(type as LayerType)}
-        on:keydown={(e) => handleKeyDown(e, type as LayerType)}
-        role="button"
-        tabindex="0"
-      >
-        <!-- Colored accent bar on the left side of the card -->
-        <div class="layer-accent"></div>
-        
-        <!-- Icon container with layer-specific icon/emoji -->
-        <div class="layer-icon">
-          <span>{definition.icon}</span>
+  {#if isExpanded}
+    <!-- Container for all layer cards -->
+    <div class="layer-cards">
+      <!-- Iterate through all available layer types from layerDefinitions -->
+      {#each Object.entries(layerDefinitions) as [type, definition]}
+        <!-- 
+          Individual layer card that can be dragged or clicked
+          - CSS custom property for dynamic coloring based on layer type
+          - draggable attribute enables HTML5 drag functionality
+          - Multiple event handlers for different interaction methods
+          - ARIA attributes for accessibility (role="button" + tabindex)
+        -->
+        <div
+          class="layer-card"
+          style="--layer-color: {definition.color}"
+          draggable="true"
+          on:dragstart={(e) => handleDragStart(e, type as LayerType)}
+          on:dragend={handleDragEnd}
+          on:click={() => handleClick(type as LayerType)}
+          on:keydown={(e) => handleKeyDown(e, type as LayerType)}
+          role="button"
+          tabindex="0"
+        >
+          <!-- Colored accent bar on the left side of the card -->
+          <div class="layer-accent"></div>
+          
+          <!-- Icon container with layer-specific icon/emoji -->
+          <div class="layer-icon">
+            <span>{definition.icon}</span>
+          </div>
+          
+          <!-- Layer type display name -->
+          <div class="layer-name">{definition.displayName}</div>
+          
+          <!-- Decorative dots on the right (visual hint for draggability) -->
+          <div class="layer-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
-        
-        <!-- Layer type display name -->
-        <div class="layer-name">{definition.displayName}</div>
-        
-        <!-- Decorative dots on the right (visual hint for draggability) -->
-        <div class="layer-dots">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-    {/each}
-  </div>
+      {/each}
+    </div>
+  {/if}
 </div>
 
 <style>
   .layer-palette {
-    padding: 20px 24px;
+    border-bottom: 1px solid #262626;
   }
-  
-  h3 {
+
+  .section-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: transparent;
+    border: none;
+    color: #737373;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .section-header:hover {
+    color: #a3a3a3;
+  }
+
+  .header-text {
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.5px;
-    color: #737373;
-    margin: 0 0 16px 0;
+  }
+
+  .expand-icon {
+    font-size: 10px;
+    transition: transform 0.2s;
+  }
+
+  .expand-icon.expanded {
+    transform: rotate(180deg);
   }
   
   .layer-cards {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    padding: 0 24px 16px 24px;
   }
   
   .layer-card {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 16px;
-    height: 48px;
-    padding: 0 16px;
+    gap: 12px;
+    height: 36px;
+    padding: 0 12px;
     background: #171717;
     border: 1px solid var(--layer-color);
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: move;
-    transition: all 0.2s;
+    transition: all 0.15s;
     user-select: none;
   }
   
   .layer-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
   
   .layer-card:active {
@@ -193,42 +226,42 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 4px;
+    width: 3px;
     background: var(--layer-color);
-    border-radius: 8px 0 0 8px;
+    border-radius: 6px 0 0 6px;
   }
   
   .layer-icon {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: color-mix(in srgb, var(--layer-color) 20%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 12px;
+    margin-left: 8px;
   }
   
   .layer-icon span {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--layer-color);
   }
   
   .layer-name {
     flex: 1;
-    font-size: 14px;
+    font-size: 12px;
     color: #ffffff;
   }
   
   .layer-dots {
     display: flex;
-    gap: 4px;
+    gap: 3px;
   }
   
   .layer-dots span {
-    width: 4px;
-    height: 4px;
+    width: 3px;
+    height: 3px;
     border-radius: 50%;
     background: var(--layer-color);
     opacity: 0.5;

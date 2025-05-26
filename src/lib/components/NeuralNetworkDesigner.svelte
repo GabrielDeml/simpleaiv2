@@ -7,6 +7,7 @@
   import TrainingConfig from './nn-designer/TrainingConfig.svelte';
   import DatasetSelector from './nn-designer/DatasetSelector.svelte';
   import TrainingProgress from './nn-designer/TrainingProgress.svelte';
+  import ModelTemplates from './nn-designer/ModelTemplates.svelte';
   
   // State management and core functionality
   import { isTraining, layers, resetTraining } from '$lib/nn-designer/stores';
@@ -104,6 +105,7 @@
         </div>
       </div>
       
+      <ModelTemplates />
       <LayerPalette />
       <DatasetSelector />
     </aside>
