@@ -16,33 +16,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a SvelteKit application demonstrating machine learning in the browser using TensorFlow.js. The project implements an MNIST digit recognition CNN (Convolutional Neural Network) trainer.
+This is a **Visual Neural Network Designer** built with SvelteKit and TensorFlow.js. It provides a drag-and-drop interface for building, training, and evaluating neural networks directly in the browser.
 
-### Key Components
+### Core Systems
 
-1. **Frontend Framework**: SvelteKit with TypeScript
-   - File-based routing in `src/routes/`
-   - Components use `.svelte` extension with script/template/style sections
-   - `$lib` alias points to `src/lib/`
+1. **Neural Network Designer** (`src/lib/nn-designer/`):
+   - **State Management** (`stores.ts`): Svelte stores for layers, training config, and UI state
+   - **Type System** (`types.ts`): TypeScript interfaces for layers, configs, and datasets
+   - **Layer Definitions** (`layerDefinitions.ts`): Registry of available layer types with defaults
+   - **Model Builder** (`modelBuilder.ts`): Converts visual layers to TensorFlow.js models
+   - **Training Manager** (`trainingManager.ts`): Handles dataset loading and training orchestration
 
-2. **ML Architecture** (`src/lib/mnist/`):
-   - `dataLoader.ts`: Handles MNIST dataset loading from Google's hosted sprites
-   - `model.ts`: Defines CNN architecture (Conv2D → MaxPool → Conv2D → MaxPool → Dense)
-   - Training happens directly in the browser using TensorFlow.js
+2. **UI Components** (`src/lib/components/nn-designer/`):
+   - **LayerPalette**: Draggable layer cards for adding to network
+   - **NetworkCanvas**: Visual network editor with drag-drop support
+   - **LayerProperties**: Dynamic property editor for selected layers
+   - **ModelSummary**: Real-time parameter count and shape calculation
+   - **TrainingConfig**: Training hyperparameter controls
+   - **TrainingProgress**: Modal showing live training metrics
+   - **DatasetSelector**: Dataset switcher (MNIST, CIFAR-10, Fashion-MNIST)
 
-3. **Main Component** (`src/lib/components/MnistTrainer.svelte`):
-   - Manages model training lifecycle
-   - Provides drawing canvas for digit prediction
-   - Real-time training progress display
+3. **Data Architecture**:
+   - Layers stored as array with unique IDs in Svelte store
+   - Drag-and-drop uses HTML5 drag events with layer type transfer
+   - Model compilation happens on-demand during training
+   - Training state persisted across component lifecycles
 
-### Project Structure
-- SvelteKit app structure with Vite as build tool
-- TypeScript with strict mode enabled
-- TensorFlow.js as the only runtime dependency
-- Component-scoped styling in Svelte files
+### Key Implementation Details
+
+- **Layer System**: Each layer type has predefined parameters and validation. Layers are stored as plain objects and converted to TF.js layers during model building.
+- **Visual Rendering**: SVG-based network visualization with CSS animations. Layers positioned vertically with connection lines.
+- **State Flow**: Unidirectional data flow using Svelte stores. UI components subscribe to stores and dispatch updates.
+- **Model Building**: Sequential models only. Input shape derived from input layer, propagated through network automatically.
+- **Training**: Runs in browser using TensorFlow.js. Progress updated via callbacks with epoch metrics stored in history.
+
+### Dataset Integration
+- MNIST loaded from Google's hosted sprites (65K images)
+- Labels are pre-encoded as one-hot vectors
+- Other datasets (CIFAR-10, Fashion-MNIST) have UI but need implementation
 
 ### Important Notes
-- No linting configured yet (ESLint config was removed)
+- No backend required - all ML runs client-side
+- Models can be saved to localStorage but not exported yet
+- No linting configured
 - No test framework set up
-- Models train in-browser; no backend required
-- Canvas drawing uses 280x280px scaled down to 28x28px for MNIST
+- Accessibility warnings exist but don't affect functionality
