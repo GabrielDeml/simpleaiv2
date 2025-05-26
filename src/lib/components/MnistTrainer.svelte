@@ -7,32 +7,44 @@
 -->
 
 <script lang="ts">
+  // External dependencies
   import * as tf from '@tensorflow/tfjs';
-  import { onMount } from 'svelte'; // Svelte lifecycle function that runs after component is mounted to DOM
+  import { onMount } from 'svelte';
+  
+  // Local imports
   import { MnistData } from '../mnist/dataLoader';
   import { createCNNModel } from '../mnist/model';
 
-  // State variables - In Svelte, these are reactive by default
-  // When these change, the UI automatically updates
-  let model: tf.Sequential | null = null; // The trained TensorFlow.js model
-  let data: MnistData | null = null; // The MNIST dataset
-  let isTraining = false; // Flag to track if model is currently training
-  let isLoading = false; // Flag to track if data is loading
-  let epochs = 10; // Number of training epochs (full passes through the dataset)
-  let batchSize = 512; // Number of samples to process at once during training
-  let currentEpoch = 0; // Current training epoch for progress display
-  let loss = 0; // Current training loss value
-  let accuracy = 0; // Current training accuracy
-  let logs: string[] = []; // Array to store log messages
-  let canvas: HTMLCanvasElement; // Reference to the drawing canvas element
+  // ========== Component State ==========
+  // All these variables are reactive - UI updates automatically when they change
+  
+  // Model and data
+  let model: tf.Sequential | null = null;
+  let data: MnistData | null = null;
+  
+  // Training state
+  let isTraining = false;
+  let isLoading = false;
+  let currentEpoch = 0;
+  let loss = 0;
+  let accuracy = 0;
+  
+  // Training parameters
+  let epochs = 10;
+  let batchSize = 512;
+  
+  // UI elements
+  let logs: string[] = [];
+  let canvas: HTMLCanvasElement;
 
-  // onMount runs after the component is added to the DOM
-  // It's like useEffect(() => {}, []) in React
+  // ========== Lifecycle ==========
   onMount(() => {
-    loadData(); // Load MNIST data when component mounts
+    loadData();
+    // Clear canvas after it's rendered
+    clearCanvas();
   });
 
-  // Async function to load the MNIST dataset
+  // ========== Data Loading ==========
   async function loadData() {
     isLoading = true;
     // In Svelte, we create a new array to trigger reactivity
@@ -46,7 +58,7 @@
     isLoading = false;
   }
 
-  // Main training function
+  // ========== Training Functions ==========
   async function startTraining() {
     if (!data) {
       logs = [...logs, 'Error: Data not loaded'];
@@ -117,7 +129,7 @@
     result.forEach(t => t.dispose());
   }
 
-  // Predict digit from canvas drawing
+  // ========== Canvas and Prediction Functions ==========
   async function predictDigit() {
     if (!model || !canvas) return;
     
@@ -126,69 +138,74 @@
     const imageData = ctx.getImageData(0, 0, 280, 280);
     
     // Convert canvas image to tensor and preprocess
-    const input = tf.browser.fromPixels(imageData, 1) // 1 = grayscale
-      .resizeNearestNeighbor([28, 28]) // Resize to MNIST size
+    // Pipeline: Canvas (280x280) → Grayscale → Resize (28x28) → Normalize → Add batch dim
+    const input = tf.browser.fromPixels(imageData, 1) // 1 channel = grayscale
+      .resizeNearestNeighbor([28, 28]) // Resize to MNIST dimensions
       .toFloat()
-      .div(255.0) // Normalize pixel values to 0-1
-      .expandDims(0); // Add batch dimension [1, 28, 28, 1]
+      .div(255.0) // Normalize pixel values from [0,255] to [0,1]
+      .expandDims(0); // Add batch dimension: [28,28,1] → [1,28,28,1]
     
-    // Run prediction
+    // Run prediction - returns probabilities for each digit (0-9)
     const prediction = model.predict(input) as tf.Tensor;
     const probabilities = await prediction.data();
-    // Find index of highest probability
-    const predictedClass = probabilities.indexOf(Math.max(...probabilities));
     
-    logs = [...logs, `Predicted digit: ${predictedClass}`];
+    // Find the digit with highest probability
+    const predictedClass = probabilities.indexOf(Math.max(...probabilities));
+    const confidence = Math.max(...probabilities) * 100;
+    
+    logs = [...logs, `Predicted digit: ${predictedClass} (confidence: ${confidence.toFixed(1)}%)`];
     
     // Clean up tensors
     input.dispose();
     prediction.dispose();
   }
 
-  // Clear the drawing canvas
   function clearCanvas() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = 'black'; // MNIST uses white on black
+    ctx.fillStyle = 'black'; // MNIST dataset uses white digits on black background
     ctx.fillRect(0, 0, 280, 280);
   }
 
-  // Handle mouse drawing on canvas
+  // ========== Drawing Functions ==========
   function startDrawing(e: MouseEvent) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
-    ctx.strokeStyle = 'white'; // Draw in white
-    ctx.lineWidth = 20; // Thick line for digit drawing
-    ctx.lineCap = 'round'; // Round line endings
+    
+    // Setup drawing style to match MNIST
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 20; // Thick line simulates pen/marker width
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round'; // Smooth line joints
     ctx.beginPath();
     
-    // Get mouse position relative to canvas
+    // Calculate mouse position relative to canvas
     const rect = canvas.getBoundingClientRect();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    ctx.moveTo(x, y);
     
-    // Inner function to handle mouse movement
+    // Handle continuous drawing
     function draw(e: MouseEvent) {
-      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      ctx.lineTo(x, y);
       ctx.stroke();
     }
     
-    // Clean up event listeners when drawing stops
+    // Cleanup function to remove event listeners
     function stopDrawing() {
       canvas.removeEventListener('mousemove', draw);
       canvas.removeEventListener('mouseup', stopDrawing);
       canvas.removeEventListener('mouseleave', stopDrawing);
     }
     
-    // Add event listeners for drawing
+    // Attach drawing event listeners
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseleave', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing); // Stop if mouse leaves canvas
   }
 
-  // Another onMount to clear canvas after it's rendered
-  onMount(() => {
-    clearCanvas();
-  });
 </script>
 
 <!-- HTML Template Section -->

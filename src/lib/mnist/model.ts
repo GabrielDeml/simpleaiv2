@@ -1,90 +1,110 @@
 import * as tf from '@tensorflow/tfjs';
 
+// ========== Model Configuration ==========
+const INPUT_SHAPE: [number, number, number] = [28, 28, 1]; // H x W x Channels
+const NUM_CLASSES = 10; // Digits 0-9
+
+// CNN Architecture parameters
+const CONV1_FILTERS = 8;
+const CONV2_FILTERS = 16;
+const KERNEL_SIZE = 5;
+const POOL_SIZE: [number, number] = [2, 2];
+const STRIDE_SIZE: [number, number] = [2, 2];
+
 /**
- * Creates a Convolutional Neural Network (CNN) model for MNIST digit classification
- * This architecture is based on classic CNN designs for image recognition
- * @returns A compiled TensorFlow.js Sequential model ready for training
+ * Creates a CNN model for MNIST digit classification.
+ * Architecture: Conv → Pool → Conv → Pool → Dense
  */
 export function createCNNModel(): tf.Sequential {
-  // Sequential model means layers are stacked linearly, one after another
   const model = tf.sequential();
 
-  // First convolutional layer
-  // This layer learns to detect basic features like edges and curves
+  // ========== Feature Extraction Layers ==========
+  
+  // Conv Layer 1: Detect basic features (edges, curves)
   model.add(tf.layers.conv2d({
-    inputShape: [28, 28, 1], // MNIST images: 28x28 pixels, 1 channel (grayscale)
-    kernelSize: 5, // 5x5 filter size - each filter looks at 5x5 pixel regions
-    filters: 8, // Number of different filters to learn (8 different feature detectors)
-    strides: 1, // Move filter by 1 pixel at a time (no skipping)
-    activation: 'relu', // ReLU activation: f(x) = max(0, x) - introduces non-linearity
-    kernelInitializer: 'varianceScaling' // Smart weight initialization for better training
-  }));
-
-  // First pooling layer
-  // Reduces spatial dimensions while keeping important features
-  // This makes the model more efficient and helps prevent overfitting
-  model.add(tf.layers.maxPooling2d({
-    poolSize: [2, 2], // Look at 2x2 regions
-    strides: [2, 2] // Move by 2 pixels (non-overlapping pooling)
-    // This reduces dimensions from 24x24 to 12x12
-  }));
-
-  // Second convolutional layer
-  // Learns more complex features by combining simple features from first layer
-  model.add(tf.layers.conv2d({
-    kernelSize: 5, // Another 5x5 filter
-    filters: 16, // More filters to learn more complex patterns
+    inputShape: INPUT_SHAPE,
+    kernelSize: KERNEL_SIZE,
+    filters: CONV1_FILTERS,
     strides: 1,
     activation: 'relu',
     kernelInitializer: 'varianceScaling'
   }));
 
-  // Second pooling layer
-  // Further reduces dimensions and computational load
+  // Pool Layer 1: Reduce dimensions 24x24 → 12x12
   model.add(tf.layers.maxPooling2d({
-    poolSize: [2, 2],
-    strides: [2, 2]
-    // Reduces from 8x8 to 4x4
+    poolSize: POOL_SIZE,
+    strides: STRIDE_SIZE
   }));
 
-  // Flatten layer
-  // Converts 2D feature maps to 1D vector for the dense layer
-  // Output shape: 4 * 4 * 16 = 256 neurons
+  // Conv Layer 2: Detect complex patterns
+  model.add(tf.layers.conv2d({
+    kernelSize: KERNEL_SIZE,
+    filters: CONV2_FILTERS,
+    strides: 1,
+    activation: 'relu',
+    kernelInitializer: 'varianceScaling'
+  }));
+
+  // Pool Layer 2: Reduce dimensions 8x8 → 4x4
+  model.add(tf.layers.maxPooling2d({
+    poolSize: POOL_SIZE,
+    strides: STRIDE_SIZE
+  }));
+
+  // ========== Classification Layers ==========
+  
+  // Flatten: 4x4x16 → 256
   model.add(tf.layers.flatten());
 
-  // Dense (fully connected) output layer
-  // Maps the 256 features to 10 classes (digits 0-9)
+  // Output Layer: 256 → 10 classes
   model.add(tf.layers.dense({
-    units: 10, // 10 output neurons, one for each digit class
+    units: NUM_CLASSES,
     kernelInitializer: 'varianceScaling',
-    activation: 'softmax' // Softmax converts outputs to probabilities that sum to 1
+    activation: 'softmax'
   }));
 
-  // Configure the model for training
-  const optimizer = tf.train.adam(); // Adam optimizer: adaptive learning rate algorithm
+  // ========== Compile Model ==========
   model.compile({
-    optimizer: optimizer,
-    loss: 'categoricalCrossentropy', // Standard loss for multi-class classification
-    metrics: ['accuracy'] // Track accuracy during training
+    optimizer: tf.train.adam(),
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy']
   });
 
   return model;
 }
 
-/*
- * Model Architecture Summary:
+/**
+ * Model Architecture Flow:
  * 
- * Input: 28x28x1 (grayscale MNIST image)
- * ↓
- * Conv2D: 5x5 kernel, 8 filters → Output: 24x24x8
- * ↓
- * MaxPool2D: 2x2 pool → Output: 12x12x8
- * ↓
- * Conv2D: 5x5 kernel, 16 filters → Output: 8x8x16
- * ↓
- * MaxPool2D: 2x2 pool → Output: 4x4x16
- * ↓
- * Flatten → Output: 256
- * ↓
- * Dense: 10 units with softmax → Output: 10 (probability for each digit)
+ * Input Layer:      28×28×1  (784 pixels)
+ *      ↓
+ * Conv2D + ReLU:    24×24×8  (4,608 neurons)
+ *      ↓
+ * MaxPool 2×2:      12×12×8  (1,152 neurons)
+ *      ↓
+ * Conv2D + ReLU:    8×8×16   (1,024 neurons)
+ *      ↓
+ * MaxPool 2×2:      4×4×16   (256 neurons)
+ *      ↓
+ * Flatten:          256      (dense vector)
+ *      ↓
+ * Dense + Softmax:  10       (class probabilities)
+ * 
+ * Total parameters: ~11,000
  */
+
+// ========== Utility Functions ==========
+
+/**
+ * Prints a summary of the model architecture.
+ */
+export function printModelSummary(model: tf.Sequential): void {
+  model.summary();
+}
+
+/**
+ * Gets the total number of trainable parameters in the model.
+ */
+export function getModelParameterCount(model: tf.Sequential): number {
+  return model.countParams();
+}

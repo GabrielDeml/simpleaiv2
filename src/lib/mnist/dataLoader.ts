@@ -1,103 +1,128 @@
 import * as tf from '@tensorflow/tfjs';
 
-// MNIST dataset constants
-const IMAGE_HEIGHT = 28; // Each MNIST image is 28 pixels tall
-const IMAGE_WIDTH = 28; // Each MNIST image is 28 pixels wide
-const IMAGE_SIZE = IMAGE_HEIGHT * IMAGE_WIDTH; // Total pixels per image (784)
+// ========== Dataset Constants ==========
+const IMAGE_HEIGHT = 28;
+const IMAGE_WIDTH = 28;
+const IMAGE_SIZE = IMAGE_HEIGHT * IMAGE_WIDTH; // 784 pixels per image
 const NUM_CLASSES = 10; // Digits 0-9
-const NUM_DATASET_ELEMENTS = 65000; // Total number of images in the dataset
-const NUM_TRAIN_ELEMENTS = 55000; // Number of images for training
+const NUM_DATASET_ELEMENTS = 65000; // Total dataset size
+const NUM_TRAIN_ELEMENTS = 55000; // Training set size
+const NUM_TEST_ELEMENTS = NUM_DATASET_ELEMENTS - NUM_TRAIN_ELEMENTS; // 10000
 
-// URLs for the MNIST dataset hosted by Google
-// The images are stored as a single large sprite image for efficient loading
+// ========== Dataset URLs ==========
+// Google hosts the MNIST dataset as optimized web formats
 const MNIST_IMAGES_SPRITE_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
 const MNIST_LABELS_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
 
 /**
- * Class for loading and managing MNIST dataset in the browser
- * This is adapted from the TensorFlow.js examples to work efficiently in browsers
+ * Class for loading and managing MNIST dataset in the browser.
+ * Handles efficient loading of 65,000 handwritten digit images from a sprite.
  */
 export class MnistData {
-  // TypeScript private properties to store the dataset
-  private datasetImages: Float32Array | null = null; // All images as normalized float values
-  private datasetLabels: Uint8Array | null = null; // All labels as one-hot encoded arrays
-  private trainImages: Float32Array | null = null; // Training subset of images
-  private testImages: Float32Array | null = null; // Test subset of images
-  private trainLabels: Uint8Array | null = null; // Training subset of labels
-  private testLabels: Uint8Array | null = null; // Test subset of labels
+  // ========== Private Properties ==========
+  private datasetImages: Float32Array | null = null;
+  private datasetLabels: Uint8Array | null = null;
+  private trainImages: Float32Array | null = null;
+  private testImages: Float32Array | null = null;
+  private trainLabels: Uint8Array | null = null;
+  private testLabels: Uint8Array | null = null;
 
+  // ========== Public Methods ==========
+  
   /**
-   * Loads the MNIST dataset from remote URLs
-   * This method downloads the sprite image and labels, then processes them
+   * Loads the MNIST dataset from remote URLs.
+   * Downloads a sprite containing all images and processes them into tensors.
    */
   async load() {
-    // Create an image element to load the sprite
+    await this.loadImages();
+    await this.loadLabels();
+    this.splitDataset();
+  }
+
+  // ========== Private Methods ==========
+
+  /**
+   * Loads and processes the MNIST images from a sprite.
+   * The sprite is a single PNG containing all 65,000 images arranged vertically.
+   */
+  private async loadImages(): Promise<void> {
     const img = new Image();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     
-    // Load the sprite image containing all MNIST digits
     await new Promise<void>((resolve) => {
-      img.crossOrigin = ''; // Enable CORS for cross-origin image loading
+      img.crossOrigin = ''; // Enable CORS
       img.onload = () => {
         img.width = img.naturalWidth;
         img.height = img.naturalHeight;
 
-        // Create buffer to store all image data
-        // 4 bytes per pixel (Float32)
+        // Allocate buffer for all images (4 bytes per pixel for Float32)
         const datasetBytesBuffer = new ArrayBuffer(NUM_DATASET_ELEMENTS * IMAGE_SIZE * 4);
-        const chunkSize = 5000; // Process images in chunks to avoid memory issues
+        const chunkSize = 5000; // Process in chunks to avoid memory spikes
         canvas.width = img.width;
         canvas.height = chunkSize;
 
-        // Process the sprite image in chunks
-        // The sprite contains all MNIST images arranged vertically
+        // Process sprite in chunks (13 chunks of 5000 images each)
         for (let i = 0; i < NUM_DATASET_ELEMENTS / chunkSize; i++) {
-          // Create a view into the buffer for this chunk
           const datasetBytesView = new Float32Array(
-            datasetBytesBuffer, i * IMAGE_SIZE * chunkSize * 4,
+            datasetBytesBuffer, 
+            i * IMAGE_SIZE * chunkSize * 4,
             IMAGE_SIZE * chunkSize
           );
           
-          // Draw a chunk of the sprite to the canvas
+          // Draw chunk from sprite to canvas
           ctx.drawImage(
             img, 0, i * chunkSize, img.width, chunkSize,
             0, 0, img.width, chunkSize
           );
 
-          // Extract pixel data from the canvas
+          // Extract and normalize pixel data
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-          // Convert RGBA pixel data to grayscale float values (0-1)
-          // We only need one channel since MNIST is grayscale
           for (let j = 0; j < imageData.data.length / 4; j++) {
-            // Take red channel (index j * 4) and normalize to 0-1
+            // Use red channel (MNIST is grayscale) and normalize to [0,1]
             datasetBytesView[j] = imageData.data[j * 4] / 255;
           }
         }
+        
         this.datasetImages = new Float32Array(datasetBytesBuffer);
         resolve();
       };
       img.src = MNIST_IMAGES_SPRITE_PATH;
     });
+  }
 
-    // Load the labels (already in the correct format)
+  /**
+   * Loads the pre-encoded labels from the server.
+   */
+  private async loadLabels(): Promise<void> {
     const labelsResponse = await fetch(MNIST_LABELS_PATH);
     this.datasetLabels = new Uint8Array(await labelsResponse.arrayBuffer());
+  }
 
-    // Split the data into training and test sets
-    // Training: first 55,000 images
-    // Test: remaining 10,000 images
+  /**
+   * Splits the dataset into training and test sets.
+   * Training: 55,000 samples, Test: 10,000 samples
+   */
+  private splitDataset(): void {
+    if (!this.datasetImages || !this.datasetLabels) {
+      throw new Error('Dataset not loaded');
+    }
+
+    // Split images
     this.trainImages = this.datasetImages.slice(0, IMAGE_SIZE * NUM_TRAIN_ELEMENTS);
     this.testImages = this.datasetImages.slice(IMAGE_SIZE * NUM_TRAIN_ELEMENTS);
+    
+    // Split labels (one-hot encoded: 10 values per label)
     this.trainLabels = this.datasetLabels.slice(0, NUM_CLASSES * NUM_TRAIN_ELEMENTS);
     this.testLabels = this.datasetLabels.slice(NUM_CLASSES * NUM_TRAIN_ELEMENTS);
   }
 
+  // ========== Data Access Methods ==========
+
   /**
-   * Get training data as TensorFlow.js tensors
-   * @param numExamples - Optional number of examples to return (defaults to all)
-   * @returns Object with xs (images) and ys (labels) tensors
+   * Returns training data as TensorFlow.js tensors.
+   * @param numExamples - Limit number of examples (optional)
+   * @returns {xs: Tensor4D, ys: Tensor2D} - Images and labels
    */
   getTrainData(numExamples?: number) {
     if (!this.trainImages || !this.trainLabels) {
@@ -107,9 +132,9 @@ export class MnistData {
   }
 
   /**
-   * Get test data as TensorFlow.js tensors
-   * @param numExamples - Optional number of examples to return (defaults to all)
-   * @returns Object with xs (images) and ys (labels) tensors
+   * Returns test data as TensorFlow.js tensors.
+   * @param numExamples - Limit number of examples (optional)
+   * @returns {xs: Tensor4D, ys: Tensor2D} - Images and labels
    */
   getTestData(numExamples?: number) {
     if (!this.testImages || !this.testLabels) {
@@ -119,21 +144,21 @@ export class MnistData {
   }
 
   /**
-   * Convert raw data arrays to TensorFlow.js tensors
-   * @param images - Float32Array of image pixel data
-   * @param labels - Uint8Array of one-hot encoded labels
-   * @param numExamples - Optional limit on number of examples
-   * @returns Object with xs and ys tensors ready for training/evaluation
+   * Converts raw arrays to TensorFlow.js tensors with proper shape.
+   * @param images - Flattened image data
+   * @param labels - One-hot encoded labels
+   * @param numExamples - Optional subset size
+   * @returns Tensors ready for model training/evaluation
    */
   private getData(images: Float32Array, labels: Uint8Array, numExamples?: number) {
-    let xs: tf.Tensor4D; // 4D tensor: [batch, height, width, channels]
-    let ys: tf.Tensor2D; // 2D tensor: [batch, numClasses]
+    let xs: tf.Tensor4D;
+    let ys: tf.Tensor2D;
 
     if (numExamples != null) {
-      // Return a subset of the data
+      // Return subset
       xs = tf.tensor4d(
         images.slice(0, numExamples * IMAGE_SIZE),
-        [numExamples, IMAGE_HEIGHT, IMAGE_WIDTH, 1] // 1 channel for grayscale
+        [numExamples, IMAGE_HEIGHT, IMAGE_WIDTH, 1]
       );
       ys = tf.tensor2d(
         labels.slice(0, numExamples * NUM_CLASSES),
@@ -141,11 +166,15 @@ export class MnistData {
       );
     } else {
       // Return all data
+      const numImages = images.length / IMAGE_SIZE;
       xs = tf.tensor4d(
         images,
-        [images.length / IMAGE_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, 1]
+        [numImages, IMAGE_HEIGHT, IMAGE_WIDTH, 1]
       );
-      ys = tf.tensor2d(labels, [labels.length / NUM_CLASSES, NUM_CLASSES]);
+      ys = tf.tensor2d(
+        labels, 
+        [numImages, NUM_CLASSES]
+      );
     }
 
     return { xs, ys };
