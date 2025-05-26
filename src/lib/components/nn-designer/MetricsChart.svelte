@@ -33,8 +33,8 @@
     const width = canvasElement.width;
     const height = canvasElement.height;
     
-    // Chart margins for better layout - increase left margin for Y-axis labels
-    const margin = { top: 20, right: 20, bottom: 30, left: 60 };
+    // Chart margins for better layout - much larger left margin for Y-axis labels
+    const margin = { top: 20, right: 20, bottom: 40, left: 80 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
     
@@ -233,7 +233,7 @@
       const value = minValue + (range * i) / labelSteps;
       const y = height - margin.bottom - (i / labelSteps) * chartHeight;
       
-      ctx.fillText(value.toFixed(3), margin.left - 8, y);
+      ctx.fillText(value.toFixed(3), margin.left - 15, y);
     }
     ctx.textAlign = 'left'; // Reset text alignment
     
@@ -255,7 +255,7 @@
     
     // Y-axis title
     ctx.save();
-    ctx.translate(15, height / 2);
+    ctx.translate(20, height / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.textAlign = 'center';
     ctx.fillText('Loss', 0, 0);

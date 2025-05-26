@@ -127,7 +127,19 @@
             break;
             
           case 'flatten':
-            model.add(tf.layers.flatten());
+            model.add(tf.layers.flatten({
+              inputShape: model.layers.length === 0 ? inputShape : undefined
+            }));
+            break;
+            
+          case 'output':
+            model.add(tf.layers.dense({
+              units: layer.params.units,
+              activation: layer.params.activation,
+              useBias: layer.params.useBias || true,
+              kernelInitializer: layer.params.kernelInitializer || 'glorotUniform',
+              inputShape: model.layers.length === 0 ? inputShape : undefined
+            }));
             break;
         }
       } catch (error) {
