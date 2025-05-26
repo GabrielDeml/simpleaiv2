@@ -14,7 +14,38 @@
    * - Grouped related settings (optimizer, loss, etc.)
    */
   
-  import { trainingConfig } from '$lib/nn-designer/stores';
+  import { trainingConfig, layers, selectedDataset } from '$lib/nn-designer/stores';
+  import { colabExporter } from '$lib/nn-designer/colabExporter';
+
+  /**
+   * Exports the current model configuration to a Google Colab notebook.
+   * Downloads a .ipynb file that can be opened directly in Colab.
+   */
+  function exportToColab() {
+    try {
+      const downloadUrl = colabExporter.generateDownloadLink(
+        $layers,
+        $trainingConfig,
+        $selectedDataset
+      );
+      
+      const filename = colabExporter.generateFilename($selectedDataset);
+      
+      // Create download link and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up blob URL
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Failed to export to Colab:', error);
+      alert('Failed to export notebook. Please check your model configuration.');
+    }
+  }
 </script>
 
 <!-- Training configuration card -->
@@ -101,6 +132,17 @@
       </select>
     </div>
   </div>
+  
+  <!-- Export section -->
+  <div class="export-section">
+    <button class="export-btn" on:click={exportToColab}>
+      <span class="export-icon">📓</span>
+      Export to Google Colab
+    </button>
+    <p class="export-hint">
+      Download a Jupyter notebook that you can open in Google Colab to train your model with GPU acceleration.
+    </p>
+  </div>
 </div>
 
 <style>
@@ -171,5 +213,49 @@
     color: #737373;
     font-size: 13px;
     pointer-events: none;
+  }
+  
+  .export-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #262626;
+  }
+  
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #1a365d;
+    border: 1px solid #2b77ad;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .export-btn:hover {
+    background: #2c5282;
+    border-color: #3182ce;
+    transform: translateY(-1px);
+  }
+  
+  .export-btn:active {
+    transform: translateY(0);
+  }
+  
+  .export-icon {
+    font-size: 16px;
+  }
+  
+  .export-hint {
+    margin: 12px 0 0 0;
+    font-size: 12px;
+    color: #737373;
+    line-height: 1.4;
   }
 </style>
