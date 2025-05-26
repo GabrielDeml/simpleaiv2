@@ -16,6 +16,8 @@
   
   import { layers, selectedLayerId, updateLayer } from '$lib/nn-designer/stores';
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
+  import { parameterHelp } from '$lib/nn-designer/parameterHelp';
+  import Tooltip from '$lib/components/Tooltip.svelte';
   
   // Reactive: Find the currently selected layer from the layers array
   $: selectedLayer = $layers.find(l => l.id === $selectedLayerId);
@@ -90,13 +92,23 @@
       <!-- Input layer properties -->
       {#if selectedLayer.type === 'input'}
         <div class="form-group">
-          <label>Shape</label>
+          <label>
+            <span>Shape</span>
+            <Tooltip content={parameterHelp.shape.description} position="right" delay={200}>
+              <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+                <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+                <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+              </svg>
+            </Tooltip>
+          </label>
           <!-- Shape as comma-separated values for easier editing -->
           <input
             type="text"
             bind:value={shapeString}
             placeholder="28, 28"
           />
+          <span class="help-text">{parameterHelp.shape.example}</span>
         </div>
       {/if}
       
@@ -104,18 +116,37 @@
       {#if selectedLayer.type === 'dense'}
         <!-- Number of neurons -->
         <div class="form-group">
-          <label>Units</label>
+          <label>
+            <span>Units</span>
+            <Tooltip content={parameterHelp.units.description} position="right" delay={200}>
+              <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+                <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+                <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+              </svg>
+            </Tooltip>
+          </label>
           <input
             type="number"
             bind:value={editedParams.units}
             min="1"
             max="10000"
           />
+          <span class="help-text">{parameterHelp.units.example}</span>
         </div>
         
         <!-- Activation function selection -->
         <div class="form-group">
-          <label>Activation</label>
+          <label>
+            <span>Activation</span>
+            <Tooltip content={parameterHelp.activation.description} position="right" delay={200}>
+              <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+                <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+                <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+              </svg>
+            </Tooltip>
+          </label>
           <select bind:value={editedParams.activation}>
             <option value="relu">ReLU</option>
             <option value="sigmoid">Sigmoid</option>
@@ -123,6 +154,9 @@
             <option value="softmax">Softmax</option>
             <option value="linear">Linear</option>
           </select>
+          {#if editedParams.activation && parameterHelp.activation.options[editedParams.activation]}
+            <span class="help-text">{parameterHelp.activation.options[editedParams.activation]}</span>
+          {/if}
         </div>
         
         <!-- Bias toggle with custom switch UI -->
@@ -246,7 +280,16 @@
       {#if selectedLayer.type === 'dropout'}
         <!-- Dropout rate (0-1) -->
         <div class="form-group">
-          <label>Rate</label>
+          <label>
+            <span>Rate</span>
+            <Tooltip content={parameterHelp.rate.description} position="right" delay={200}>
+              <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+                <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+                <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+              </svg>
+            </Tooltip>
+          </label>
           <input
             type="number"
             bind:value={editedParams.rate}
@@ -254,6 +297,7 @@
             max="1"
             step="0.1"
           />
+          <span class="help-text">{parameterHelp.rate.example}</span>
         </div>
       {/if}
       
@@ -310,6 +354,25 @@
   .form-group label {
     font-size: 12px;
     color: #737373;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .help-icon {
+    color: #525252;
+    cursor: help;
+    transition: color 0.2s;
+  }
+  
+  .help-icon:hover {
+    color: #737373;
+  }
+  
+  .help-text {
+    font-size: 11px;
+    color: #525252;
+    margin-top: 4px;
   }
   
   input[type="text"],

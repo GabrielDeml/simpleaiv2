@@ -16,12 +16,18 @@
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
   import { addLayer } from '$lib/nn-designer/stores';
   import type { LayerType } from '$lib/nn-designer/types';
+  import Tooltip from '$lib/components/Tooltip.svelte';
+  import LayerInfoPopup from '$lib/components/LayerInfoPopup.svelte';
   
   // Tracks which layer type is currently being dragged (for potential visual feedback)
   let draggedLayerType: LayerType | null = null;
   
   // Collapsible state
   let isExpanded = true;
+  
+  // Popup state
+  let showInfoPopup = false;
+  let selectedInfoLayer: LayerType | null = null;
   
   /**
    * Handles the start of a drag operation
@@ -98,6 +104,15 @@
     
     addLayer(newLayer);
   }
+  
+  /**
+   * Shows the detailed info popup for a layer type
+   * @param layerType - The type of layer to show info for
+   */
+  function showLayerInfo(layerType: LayerType) {
+    selectedInfoLayer = layerType;
+    showInfoPopup = true;
+  }
 </script>
 
 <!-- Main container for the layer palette sidebar -->
@@ -141,6 +156,21 @@
           <!-- Layer type display name -->
           <div class="layer-name">{definition.displayName}</div>
           
+          <!-- Info icon with tooltip -->
+          <button 
+            class="layer-info" 
+            on:click|stopPropagation={() => showLayerInfo(type as LayerType)}
+            aria-label="Show {definition.displayName} details"
+          >
+            <Tooltip content="Click for detailed information" position="left" delay={200}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+                <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+                <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+              </svg>
+            </Tooltip>
+          </button>
+          
           <!-- Decorative dots on the right (visual hint for draggability) -->
           <div class="layer-dots">
             <span></span>
@@ -152,6 +182,13 @@
     </div>
   {/if}
 </div>
+
+<!-- Layer info popup -->
+<LayerInfoPopup 
+  layerType={selectedInfoLayer} 
+  isOpen={showInfoPopup} 
+  on:close={() => showInfoPopup = false} 
+/>
 
 <style>
   .layer-palette {
@@ -254,9 +291,34 @@
     color: #ffffff;
   }
   
+  .layer-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: #737373;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 0;
+  }
+  
+  .layer-info:hover {
+    color: #a3a3a3;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .layer-info:active {
+    transform: scale(0.95);
+  }
+  
   .layer-dots {
     display: flex;
     gap: 3px;
+    margin-left: 4px;
   }
   
   .layer-dots span {

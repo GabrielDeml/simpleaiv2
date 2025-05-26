@@ -17,6 +17,7 @@
   import ConfirmDialog from './ConfirmDialog.svelte';
   import InstructionModal from './InstructionModal.svelte';
   import ToastContainer from './ToastContainer.svelte';
+  import HelpModal from './HelpModal.svelte';
   
   // Control visibility of training progress modal
   let showTrainingProgress = false;
@@ -24,6 +25,7 @@
   // Control visibility of dialogs
   let showClearConfirm = false;
   let showColabInstructions = false;
+  let showHelp = false;
   
   // Start or stop training the neural network model
   async function handleRunStop() {
@@ -244,6 +246,10 @@ print("4. Run the notebook to train your model with GPU acceleration!")
         {/if}
       </div>
       <button class="btn btn-danger" on:click={handleClear}>Clear</button>
+      <div class="toolbar-spacer"></div>
+      <button class="btn btn-help" on:click={() => showHelp = true}>
+        <span class="icon">❓</span> Help
+      </button>
     </div>
     <div class="model-name">Model: my_neural_network</div>
   </div>
@@ -323,6 +329,9 @@ print("4. Run the notebook to train your model with GPU acceleration!")
       on:close={() => showColabInstructions = false}
     />
   {/if}
+  
+  <!-- Help modal -->
+  <HelpModal isOpen={showHelp} on:close={() => showHelp = false} />
 </div>
 
 <!-- Toast notifications -->
@@ -405,6 +414,21 @@ print("4. Run the notebook to train your model with GPU acceleration!")
   .btn-training:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+  
+  .btn-help {
+    background: #1a1a1a;
+    color: #22c55e;
+    border: 1px solid #333333;
+  }
+  
+  .btn-help:hover {
+    background: #262626;
+    border-color: #22c55e;
+  }
+  
+  .toolbar-spacer {
+    flex: 1;
   }
   
   .model-name {

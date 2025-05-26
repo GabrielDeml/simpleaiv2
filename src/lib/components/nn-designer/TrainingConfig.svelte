@@ -17,6 +17,8 @@
   import { trainingConfig, layers, selectedDataset } from '$lib/nn-designer/stores';
   import { colabExporter } from '$lib/nn-designer/colabExporter';
   import { showError } from '$lib/stores/toastStore';
+  import { parameterHelp } from '$lib/nn-designer/parameterHelp';
+  import Tooltip from '$lib/components/Tooltip.svelte';
 
   /**
    * Exports the current model configuration to a Google Colab notebook.
@@ -57,7 +59,16 @@
   <div class="config-grid">
     <!-- Number of training epochs -->
     <div class="config-field">
-      <label for="epochs">Epochs</label>
+      <label for="epochs">
+        <span>Epochs</span>
+        <Tooltip content={parameterHelp.epochs.description} position="top" delay={200}>
+          <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+            <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+            <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+          </svg>
+        </Tooltip>
+      </label>
       <input
         id="epochs"
         type="number"
@@ -65,11 +76,21 @@
         min="1"
         max="1000"
       />
+      <span class="help-text">{parameterHelp.epochs.example}</span>
     </div>
     
     <!-- Batch size for mini-batch gradient descent -->
     <div class="config-field">
-      <label for="batch-size">Batch Size</label>
+      <label for="batch-size">
+        <span>Batch Size</span>
+        <Tooltip content={parameterHelp.batchSize.description} position="top" delay={200}>
+          <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+            <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+            <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+          </svg>
+        </Tooltip>
+      </label>
       <input
         id="batch-size"
         type="number"
@@ -77,11 +98,21 @@
         min="1"
         max="512"
       />
+      <span class="help-text">{parameterHelp.batchSize.example}</span>
     </div>
     
     <!-- Learning rate for optimizer -->
     <div class="config-field">
-      <label for="learning-rate">Learning Rate</label>
+      <label for="learning-rate">
+        <span>Learning Rate</span>
+        <Tooltip content={parameterHelp.learningRate.description} position="top" delay={200}>
+          <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+            <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+            <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+          </svg>
+        </Tooltip>
+      </label>
       <input
         id="learning-rate"
         type="number"
@@ -90,16 +121,29 @@
         max="1"
         step="0.001"
       />
+      <span class="help-text">{parameterHelp.learningRate.example}</span>
     </div>
     
     <!-- Optimization algorithm selection -->
     <div class="config-field">
-      <label for="optimizer">Optimizer</label>
+      <label for="optimizer">
+        <span>Optimizer</span>
+        <Tooltip content={parameterHelp.optimizer.description} position="top" delay={200}>
+          <svg class="help-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+            <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+            <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+          </svg>
+        </Tooltip>
+      </label>
       <select id="optimizer" bind:value={$trainingConfig.optimizer}>
         <option value="adam">Adam</option>
         <option value="sgd">SGD</option>
         <option value="rmsprop">RMSprop</option>
       </select>
+      {#if $trainingConfig.optimizer && parameterHelp.optimizer.options[$trainingConfig.optimizer]}
+        <span class="help-text">{parameterHelp.optimizer.options[$trainingConfig.optimizer]}</span>
+      {/if}
     </div>
     
     <!-- 
@@ -169,6 +213,25 @@
   label {
     font-size: 12px;
     color: #737373;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .help-icon {
+    color: #525252;
+    cursor: help;
+    transition: color 0.2s;
+  }
+  
+  .help-icon:hover {
+    color: #737373;
+  }
+  
+  .help-text {
+    font-size: 11px;
+    color: #525252;
+    margin-top: -4px;
   }
   
   input,

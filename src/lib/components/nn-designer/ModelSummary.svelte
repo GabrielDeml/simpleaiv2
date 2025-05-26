@@ -16,6 +16,7 @@
   
   import { layers } from '$lib/nn-designer/stores';
   import * as tf from '@tensorflow/tfjs';
+  import Tooltip from '$lib/components/Tooltip.svelte';
   
   // Summary statistics displayed to user
   let modelSummary = {
@@ -172,13 +173,31 @@
 
 <!-- Model summary card container -->
 <div class="model-summary">
-  <h2>Model Summary</h2>
+  <h2>
+    <span>Model Summary</span>
+    <Tooltip content="Real-time statistics about your neural network architecture" position="left" delay={200}>
+      <svg class="help-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+        <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+        <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+      </svg>
+    </Tooltip>
+  </h2>
   
   <!-- Statistics grid -->
   <div class="summary-stats">
     <!-- Total parameter count -->
     <div class="stat">
-      <span class="label">Total Parameters:</span>
+      <span class="label">
+        <span>Total Parameters:</span>
+        <Tooltip content="The total number of learnable weights and biases in your model. More parameters = more capacity to learn complex patterns, but slower training." position="left" delay={200}>
+          <svg class="info-icon" width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+            <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+            <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+          </svg>
+        </Tooltip>
+      </span>
       <span class="value">{formatNumber(modelSummary.totalParams)}</span>
     </div>
     
@@ -196,7 +215,16 @@
     
     <!-- Output tensor shape (batch dimension shown as 'None') -->
     <div class="stat">
-      <span class="label">Output Shape:</span>
+      <span class="label">
+        <span>Output Shape:</span>
+        <Tooltip content="The shape of your model's predictions. 'None' means any batch size. The other numbers should match your problem (e.g., 10 for 10 classes)." position="left" delay={200}>
+          <svg class="info-icon" width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-opacity="0.5"/>
+            <path d="M8 7V11" stroke="currentColor" stroke-linecap="round"/>
+            <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+          </svg>
+        </Tooltip>
+      </span>
       <span class="value">
         {modelSummary.outputShape.length > 0 
           ? `(None, ${modelSummary.outputShape.join(', ')})`
@@ -218,6 +246,19 @@
     font-size: 16px;
     font-weight: 500;
     margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .help-icon {
+    color: #525252;
+    cursor: help;
+    transition: color 0.2s;
+  }
+  
+  .help-icon:hover {
+    color: #737373;
   }
   
   .summary-stats {
@@ -235,6 +276,19 @@
   
   .label {
     color: #737373;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .info-icon {
+    color: #404040;
+    cursor: help;
+    transition: color 0.2s;
+  }
+  
+  .info-icon:hover {
+    color: #525252;
   }
   
   .value {
