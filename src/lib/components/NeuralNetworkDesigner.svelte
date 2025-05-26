@@ -15,7 +15,6 @@
   import { modelBuilder } from '$lib/nn-designer/modelBuilder';
   import { showSuccess, showError } from '$lib/stores/toastStore';
   import ConfirmDialog from './ConfirmDialog.svelte';
-  import InstructionModal from './InstructionModal.svelte';
   import ToastContainer from './ToastContainer.svelte';
   
   // Control visibility of training progress modal
@@ -23,7 +22,6 @@
   
   // Control visibility of dialogs
   let showClearConfirm = false;
-  let showColabInstructions = false;
   
   // Start or stop training the neural network model
   async function handleRunStop() {
@@ -61,15 +59,6 @@
     }
   }
 
-  // Export trained model to downloadable files
-  async function handleExport() {
-    try {
-      await modelBuilder.exportModel(); // Export as TensorFlow.js format
-      showSuccess('Model exported successfully!');
-    } catch (error) {
-      showError(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
 
   // Export model configuration as JSON
   function handleExportJSON() {
@@ -100,100 +89,6 @@
     showExportDropdown = false;
   }
 
-  // Export to Google Colab with instructions
-  function handleExportColab() {
-    const colabCode = `# Neural Network Training in Google Colab
-# Generated from NN Designer
-
-# Install TensorFlow
-!pip install tensorflow
-
-import tensorflow as tf
-import numpy as np
-from tensorflow import keras
-from tensorflow.keras import layers
-
-# Model Configuration
-model_config = ${JSON.stringify($layers, null, 2)}
-
-# Build the model
-model = keras.Sequential()
-
-# Add layers based on configuration
-for layer_config in model_config:
-    layer_type = layer_config['type']
-    params = layer_config['params']
-    
-    if layer_type == 'input':
-        # Input layer is implicit in Sequential model
-        pass
-    elif layer_type == 'dense':
-        model.add(layers.Dense(
-            units=params['units'],
-            activation=params.get('activation', 'relu')
-        ))
-    elif layer_type == 'conv2d':
-        model.add(layers.Conv2D(
-            filters=params['filters'],
-            kernel_size=params['kernelSize'],
-            activation=params.get('activation', 'relu')
-        ))
-    elif layer_type == 'flatten':
-        model.add(layers.Flatten())
-    elif layer_type == 'dropout':
-        model.add(layers.Dropout(params['rate']))
-
-# Compile the model
-model.compile(
-    optimizer='adam',
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
-
-# Display model summary
-model.summary()
-
-# Load your dataset here
-# For MNIST example:
-# (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-# x_train = x_train.reshape(-1, 28, 28, 1).astype('float32') / 255.0
-# x_test = x_test.reshape(-1, 28, 28, 1).astype('float32') / 255.0
-# y_train = keras.utils.to_categorical(y_train, 10)
-# y_test = keras.utils.to_categorical(y_test, 10)
-
-# Train the model
-# history = model.fit(
-#     x_train, y_train,
-#     batch_size=32,
-#     epochs=10,
-#     validation_data=(x_test, y_test),
-#     verbose=1
-# )
-
-print("Model configuration exported successfully!")
-print("Next steps:")
-print("1. Upload your dataset or use a built-in dataset like MNIST")
-print("2. Uncomment and modify the data loading section")
-print("3. Uncomment the training section")
-print("4. Run the notebook to train your model with GPU acceleration!")
-`;
-
-    const blob = new Blob([colabCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'neural-network-colab.py';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    URL.revokeObjectURL(url);
-    
-    // Show instructions modal
-    showColabInstructions = true;
-    showExportDropdown = false;
-  }
   
   // Clear current model and reset to default state
   function handleClear() {
@@ -236,9 +131,6 @@ print("4. Run the notebook to train your model with GPU acceleration!")
           <div class="export-menu">
             <button class="export-option" on:click={handleExportJSON}>
               📄 Download JSON
-            </button>
-            <button class="export-option" on:click={handleExportColab}>
-              📓 Download Colab
             </button>
           </div>
         {/if}
@@ -306,21 +198,6 @@ print("4. Run the notebook to train your model with GPU acceleration!")
       type="danger"
       on:confirm={confirmClear}
       on:cancel={() => showClearConfirm = false}
-    />
-  {/if}
-  
-  <!-- Colab instructions modal -->
-  {#if showColabInstructions}
-    <InstructionModal
-      title="Colab Export Complete!"
-      instructions={[
-        "Go to https://colab.research.google.com/",
-        "Click 'Upload' and select the downloaded .py file",
-        "Load your dataset (or use built-in datasets like MNIST)",
-        "Train your model with GPU acceleration",
-        "Evaluate performance and visualize results"
-      ]}
-      on:close={() => showColabInstructions = false}
     />
   {/if}
 </div>
