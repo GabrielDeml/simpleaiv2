@@ -5,7 +5,7 @@ import { modelTemplates } from './modelTemplates';
 /**
  * Main store for the neural network architecture.
  * Contains an array of layer configurations in order from input to output.
- * Default initialized with a single input layer for MNIST.
+ * Default initialized with a simple dense network for MNIST.
  */
 export const layers = writable<LayerConfig[]>([
   {
@@ -13,6 +13,24 @@ export const layers = writable<LayerConfig[]>([
     type: 'input',
     name: 'Input Layer',
     params: { shape: [28, 28] }
+  },
+  {
+    id: 'flatten-1',
+    type: 'flatten',
+    name: 'Flatten',
+    params: {}
+  },
+  {
+    id: 'dense-1',
+    type: 'dense',
+    name: 'Hidden Layer',
+    params: { units: 128, activation: 'relu', useBias: true, kernelInitializer: 'glorotUniform' }
+  },
+  {
+    id: 'dense-2',
+    type: 'dense',
+    name: 'Output Layer',
+    params: { units: 10, activation: 'softmax', useBias: true, kernelInitializer: 'glorotUniform' }
   }
 ]);
 
