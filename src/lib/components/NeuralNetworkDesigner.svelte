@@ -1,4 +1,5 @@
 <script lang="ts">
+  // UI Components for the neural network designer
   import LayerPalette from './nn-designer/LayerPalette.svelte';
   import NetworkCanvas from './nn-designer/NetworkCanvas.svelte';
   import LayerProperties from './nn-designer/LayerProperties.svelte';
@@ -6,53 +7,66 @@
   import TrainingConfig from './nn-designer/TrainingConfig.svelte';
   import DatasetSelector from './nn-designer/DatasetSelector.svelte';
   import TrainingProgress from './nn-designer/TrainingProgress.svelte';
+  
+  // State management and core functionality
   import { isTraining, layers, resetTraining } from '$lib/nn-designer/stores';
   import { trainingManager } from '$lib/nn-designer/trainingManager';
+  import { modelBuilder } from '$lib/nn-designer/modelBuilder';
   
+  // Control visibility of training progress modal
   let showTrainingProgress = false;
   
+  // Start training the neural network model
   async function handleRun() {
     try {
-      showTrainingProgress = true;
-      await trainingManager.startTraining();
+      showTrainingProgress = true; // Show progress modal
+      await trainingManager.startTraining(); // Delegate to training manager
     } catch (error) {
       alert(`Training failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      showTrainingProgress = false;
+      showTrainingProgress = false; // Hide modal on error
     }
   }
   
+  // Save current model configuration to browser's localStorage
   function handleSave() {
-    // Save to localStorage
     const modelData = {
-      layers: $layers,
-      timestamp: new Date().toISOString()
+      layers: $layers, // Current layer configuration from store
+      timestamp: new Date().toISOString() // Add timestamp for versioning
     };
     localStorage.setItem('nn-designer-model', JSON.stringify(modelData));
     alert('Model saved to browser storage!');
   }
   
-  function handleExport() {
-    // Export model
-    console.log('Export model - not implemented yet');
+  // Export trained model to downloadable files
+  async function handleExport() {
+    try {
+      await modelBuilder.exportModel(); // Export as TensorFlow.js format
+      alert('Model exported successfully!');
+    } catch (error) {
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
   
+  // Clear current model and reset to default state
   function handleClear() {
     if (confirm('Are you sure you want to clear the model?')) {
+      // Reset to single input layer with MNIST dimensions
       layers.set([
         {
           id: 'input-1',
           type: 'input',
           name: 'Input Layer',
-          params: { shape: [28, 28] }
+          params: { shape: [28, 28] } // Default MNIST input shape
         }
       ]);
-      resetTraining();
+      resetTraining(); // Clear training history and metrics
     }
   }
 </script>
 
+<!-- Main container for the neural network designer application -->
 <div class="designer-container">
-  <!-- Top Bar -->
+  <!-- Top toolbar with action buttons -->
   <div class="top-bar">
     <div class="toolbar">
       <button class="btn btn-primary" on:click={handleRun} disabled={$isTraining}>
@@ -65,8 +79,9 @@
     <div class="model-name">Model: my_neural_network</div>
   </div>
   
+  <!-- Main content area with three-panel layout -->
   <div class="main-content">
-    <!-- Left Sidebar -->
+    <!-- Left sidebar: Model types, layer palette, and dataset selector -->
     <aside class="sidebar">
       <div class="sidebar-header">
         <h1>NN Designer</h1>
@@ -93,19 +108,20 @@
       <DatasetSelector />
     </aside>
     
-    <!-- Main Canvas -->
+    <!-- Central canvas: Visual network editor and training configuration -->
     <main class="canvas-area">
-      <NetworkCanvas />
-      <TrainingConfig />
+      <NetworkCanvas /> <!-- Drag-and-drop network visualization -->
+      <TrainingConfig /> <!-- Hyperparameter controls -->
     </main>
     
-    <!-- Right Panel -->
+    <!-- Right panel: Layer properties editor and model summary -->
     <aside class="right-panel">
-      <LayerProperties />
-      <ModelSummary />
+      <LayerProperties /> <!-- Edit selected layer parameters -->
+      <ModelSummary /> <!-- Display parameter count and shapes -->
     </aside>
   </div>
   
+  <!-- Training progress modal (shown during training) -->
   {#if showTrainingProgress}
     <TrainingProgress on:close={() => showTrainingProgress = false} />
   {/if}

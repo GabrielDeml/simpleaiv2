@@ -1,41 +1,87 @@
 <script lang="ts">
-  import { selectedDataset } from '$lib/nn-designer/stores';
+  /**
+   * DatasetSelector Component
+   * 
+   * Purpose: Allows users to select from available datasets for training.
+   * Automatically updates the input layer shape when a dataset is selected
+   * to match the expected input dimensions.
+   * 
+   * Key features:
+   * - Radio button selection for datasets
+   * - Visual dataset shape indicators
+   * - Auto-updates input layer on selection
+   * - Placeholder for custom dataset upload
+   * - Disabled state for unavailable datasets
+   */
+  
+  import { selectedDataset, layers, updateLayer } from '$lib/nn-designer/stores';
   import type { DatasetType } from '$lib/nn-designer/types';
   
+  // Dataset configuration interface
   interface DatasetInfo {
     type: DatasetType;
     name: string;
-    shape: string;
-    available: boolean;
+    shape: string;          // Human-readable shape (e.g., "28×28")
+    available: boolean;     // Whether dataset is implemented
+    inputShape: number[];   // Actual shape array for input layer
   }
   
+  // Available datasets with their configurations
   const datasets: DatasetInfo[] = [
-    { type: 'mnist', name: 'MNIST', shape: '28×28', available: true },
-    { type: 'cifar10', name: 'CIFAR-10', shape: '32×32×3', available: false },
-    { type: 'fashion-mnist', name: 'Fashion-MNIST', shape: '28×28', available: false }
+    { type: 'mnist', name: 'MNIST', shape: '28×28', available: true, inputShape: [28, 28] },
+    { type: 'cifar10', name: 'CIFAR-10', shape: '32×32×3', available: true, inputShape: [32, 32, 3] },
+    { type: 'fashion-mnist', name: 'Fashion-MNIST', shape: '28×28', available: true, inputShape: [28, 28] }
   ];
   
+  /**
+   * Handles dataset selection
+   * @param type - The dataset type to select
+   * 
+   * - Updates global selected dataset
+   * - Automatically adjusts input layer shape to match dataset
+   * - Only processes available datasets
+   */
   function selectDataset(type: DatasetType) {
-    if (datasets.find(d => d.type === type)?.available) {
+    const dataset = datasets.find(d => d.type === type);
+    if (dataset?.available) {
       selectedDataset.set(type);
+      
+      // Auto-adjust input layer shape to match selected dataset
+      const currentLayers = $layers;
+      if (currentLayers.length > 0 && currentLayers[0].type === 'input') {
+        updateLayer(currentLayers[0].id, { shape: dataset.inputShape });
+      }
     }
   }
   
+  /**
+   * Placeholder for custom dataset upload functionality
+   * Currently just logs to console
+   */
   function handleUpload() {
     console.log('Upload custom dataset');
   }
 </script>
 
+<!-- Dataset selector panel -->
 <div class="dataset-selector">
   <h3>DATASET</h3>
   
+  <!-- List of available datasets -->
   <div class="dataset-list">
     {#each datasets as dataset}
+      <!-- 
+        Radio button option for each dataset
+        - Custom styled radio button
+        - Shows active state with green highlight
+        - Disabled state for unavailable datasets
+      -->
       <label 
         class="dataset-option"
         class:active={$selectedDataset === dataset.type}
         class:disabled={!dataset.available}
       >
+        <!-- Hidden native radio input -->
         <input
           type="radio"
           name="dataset"
@@ -44,12 +90,16 @@
           disabled={!dataset.available}
           on:change={() => selectDataset(dataset.type)}
         />
+        <!-- Custom radio button visual -->
         <span class="radio-icon"></span>
+        <!-- Dataset name -->
         <span class="dataset-name">{dataset.name}</span>
+        <!-- Dataset shape indicator -->
         <span class="dataset-shape">{dataset.shape}</span>
       </label>
     {/each}
     
+    <!-- Upload button (placeholder for future functionality) -->
     <button class="upload-btn" on:click={handleUpload}>
       📁 Upload Custom Dataset
     </button>

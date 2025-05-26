@@ -1,18 +1,29 @@
 import * as tf from '@tensorflow/tfjs';
 import type { LayerConfig, TrainingConfig } from './types';
-import { get } from 'svelte/store';
 import { 
-  layers, 
   isTraining, 
   currentEpoch, 
   trainingHistory, 
   resetTraining 
 } from './stores';
 
+/**
+ * ModelBuilder class handles the conversion of visual layer configurations
+ * into TensorFlow.js models, along with compilation, training, and prediction.
+ * Manages the lifecycle of the underlying TF.js model.
+ */
 export class ModelBuilder {
+  /** The TensorFlow.js Sequential model instance */
   private model: tf.Sequential | null = null;
+  /** Flag to signal early training termination */
   private stopTraining = false;
 
+  /**
+   * Builds a TensorFlow.js Sequential model from layer configurations.
+   * Disposes of any existing model before building a new one.
+   * @param layerConfigs - Array of layer configurations from the visual designer
+   * @returns The compiled TensorFlow.js Sequential model
+   */
   buildModel(layerConfigs: LayerConfig[]): tf.Sequential {
     if (this.model) {
       this.model.dispose();
@@ -24,13 +35,13 @@ export class ModelBuilder {
     for (let i = 0; i < layerConfigs.length; i++) {
       const layer = layerConfigs[i];
 
-      // Handle input layer
+      // Handle input layer - it doesn't create a TF.js layer but defines input shape
       if (layer.type === 'input') {
         inputShape = layer.params.shape;
-        continue;
+        continue; // Skip to next layer
       }
 
-      // Add inputShape to first real layer
+      // Add inputShape to first real layer (required by TF.js)
       const isFirstLayer = this.model.layers.length === 0;
       
       switch (layer.type) {
@@ -45,7 +56,7 @@ export class ModelBuilder {
           break;
 
         case 'conv2d':
-          // Add channel dimension if needed
+          // Add channel dimension if needed (e.g., [28, 28] -> [28, 28, 1])
           const convInputShape = isFirstLayer && inputShape 
             ? inputShape.length === 2 ? [...inputShape, 1] : inputShape
             : undefined;
@@ -84,6 +95,12 @@ export class ModelBuilder {
     return this.model;
   }
 
+  /**
+   * Compiles the model with optimizer, loss function, and metrics.
+   * Must be called after buildModel() and before training.
+   * @param config - Training configuration with optimizer settings
+   * @throws Error if model hasn't been built yet
+   */
   compileModel(config: TrainingConfig): void {
     if (!this.model) {
       throw new Error('Model must be built before compiling');
@@ -111,6 +128,16 @@ export class ModelBuilder {
     });
   }
 
+  /**
+   * Trains the model on provided data with real-time progress updates.
+   * Updates global training state stores during training.
+   * @param trainData - Training input data tensor
+   * @param trainLabels - Training labels tensor (one-hot encoded)
+   * @param config - Training configuration
+   * @param onEpochEnd - Optional callback for each epoch completion
+   * @returns Training history object
+   * @throws Error if model hasn't been built and compiled
+   */
   async trainModel(
     trainData: tf.Tensor,
     trainLabels: tf.Tensor,
@@ -135,7 +162,7 @@ export class ModelBuilder {
             if (logs) {
               currentEpoch.set(epoch + 1);
               
-              // Update training history
+              // Update training history store with new metrics
               trainingHistory.update(h => ({
                 loss: [...h.loss, logs.loss as number],
                 valLoss: [...h.valLoss, logs.val_loss as number || 0],
@@ -148,7 +175,7 @@ export class ModelBuilder {
               }
             }
 
-            // Check if training should stop
+            // Check if training should stop (allows user cancellation)
             if (this.stopTraining) {
               this.model!.stopTraining = true;
             }
@@ -162,10 +189,20 @@ export class ModelBuilder {
     }
   }
 
+  /**
+   * Signals the training process to stop after the current batch.
+   * The actual stop happens in the next epoch callback.
+   */
   stopTrainingProcess(): void {
     this.stopTraining = true;
   }
 
+  /**
+   * Runs inference on input data using the trained model.
+   * @param input - Input tensor matching the model's expected shape
+   * @returns Prediction tensor
+   * @throws Error if model hasn't been built
+   */
   predict(input: tf.Tensor): tf.Tensor {
     if (!this.model) {
       throw new Error('Model must be built before prediction');
@@ -173,10 +210,57 @@ export class ModelBuilder {
     return this.model.predict(input) as tf.Tensor;
   }
 
+  /**
+   * Returns the underlying TensorFlow.js model instance.
+   * @returns The Sequential model or null if not built
+   */
   getModel(): tf.Sequential | null {
     return this.model;
   }
 
+  /**
+   * Exports the trained model to browser downloads.
+   * Uses TensorFlow.js browser download functionality.
+   * @throws Error if no model exists
+   */
+  async exportModel(): Promise<void> {
+    if (!this.model) {
+      throw new Error('No model to export. Train a model first.');
+    }
+
+    // Save model to browser downloads folder
+    await this.model.save('downloads://my-neural-network');
+  }
+
+  /**
+   * Exports the model as JSON artifacts for custom storage.
+   * Returns the model topology and weights in a structured format.
+   * @returns Object containing model topology, weight specs, and weight data
+   * @throws Error if no model exists
+   */
+  async exportModelAsJSON(): Promise<{ modelTopology: any; weightSpecs: any; weightData: ArrayBuffer }> {
+    if (!this.model) {
+      throw new Error('No model to export. Train a model first.');
+    }
+
+    // Get model artifacts using a custom save handler that captures the data
+    let modelArtifacts: any = null;
+    await this.model.save(tf.io.withSaveHandler(async (artifacts) => {
+      modelArtifacts = artifacts;
+      return { modelArtifactsInfo: { dateSaved: new Date(), modelTopologyType: 'JSON' } };
+    }));
+    
+    return {
+      modelTopology: modelArtifacts.modelTopology,
+      weightSpecs: modelArtifacts.weightSpecs || [],
+      weightData: modelArtifacts.weightData || new ArrayBuffer(0)
+    };
+  }
+
+  /**
+   * Disposes of the TensorFlow.js model to free GPU memory.
+   * Should be called when switching models or cleaning up.
+   */
   dispose(): void {
     if (this.model) {
       this.model.dispose();
@@ -185,5 +269,8 @@ export class ModelBuilder {
   }
 }
 
-// Singleton instance
+/**
+ * Singleton instance of ModelBuilder.
+ * Ensures only one model is active at a time to prevent memory leaks.
+ */
 export const modelBuilder = new ModelBuilder();

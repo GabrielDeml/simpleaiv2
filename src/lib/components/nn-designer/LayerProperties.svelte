@@ -1,50 +1,108 @@
 <script lang="ts">
+  /**
+   * LayerProperties Component
+   * 
+   * Purpose: Provides a dynamic form for editing the parameters of the
+   * currently selected layer. Different layer types show different controls
+   * based on their available parameters.
+   * 
+   * Key features:
+   * - Dynamic form generation based on layer type
+   * - Local editing state with Apply/Cancel functionality
+   * - Type-specific input validation
+   * - Custom controls (toggles, selects, number inputs)
+   * - Real-time preview of changes before applying
+   */
+  
   import { layers, selectedLayerId, updateLayer } from '$lib/nn-designer/stores';
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
   
+  // Reactive: Find the currently selected layer from the layers array
   $: selectedLayer = $layers.find(l => l.id === $selectedLayerId);
+  
+  // Reactive: Get the layer definition for the selected layer type
   $: layerDef = selectedLayer ? layerDefinitions[selectedLayer.type] : null;
   
+  // Local state for edited parameters (allows cancel without saving)
   let editedParams = {};
   
+  // Special handling for input layer shape (comma-separated string)
+  let shapeString = '';
+  
+  /**
+   * Reactive statement to update local edit state when selection changes
+   * - Copies current parameters to local state
+   * - Converts shape array to string for input layers
+   * - Ensures UI always reflects current selection
+   */
   $: if (selectedLayer) {
     editedParams = { ...selectedLayer.params };
+    if (selectedLayer.type === 'input' && Array.isArray(selectedLayer.params.shape)) {
+      shapeString = selectedLayer.params.shape.join(', ');
+    }
   }
   
+  /**
+   * Applies the edited parameters to the selected layer
+   * - Special handling for input shape (string to array conversion)
+   * - Updates the global store with new parameters
+   * - Validates and filters shape values to ensure they're numbers
+   */
   function handleApply() {
     if (selectedLayer) {
+      // Convert shape string back to array for input layers
+      if (selectedLayer.type === 'input' && shapeString) {
+        const shape = shapeString.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+        editedParams.shape = shape;
+      }
       updateLayer(selectedLayer.id, editedParams);
     }
   }
   
+  /**
+   * Cancels editing and reverts to original parameters
+   * - Resets local state to match current layer parameters
+   * - Useful for undoing changes before they're applied
+   */
   function handleCancel() {
     if (selectedLayer) {
       editedParams = { ...selectedLayer.params };
+      if (selectedLayer.type === 'input' && Array.isArray(selectedLayer.params.shape)) {
+        shapeString = selectedLayer.params.shape.join(', ');
+      }
     }
   }
 </script>
 
+<!-- Main container for the properties panel -->
 <div class="layer-properties">
   <h2>Layer Properties</h2>
   
+  <!-- Show properties only when a layer is selected -->
   {#if selectedLayer && layerDef}
+    <!-- Layer type indicator with dynamic color and position -->
     <p class="layer-type" style="color: {layerDef.color}">
       {layerDef.displayName} (Layer {$layers.findIndex(l => l.id === selectedLayer.id) + 1})
     </p>
     
+    <!-- Dynamic form based on layer type -->
     <div class="properties-form">
+      <!-- Input layer properties -->
       {#if selectedLayer.type === 'input'}
         <div class="form-group">
           <label>Shape</label>
+          <!-- Shape as comma-separated values for easier editing -->
           <input
             type="text"
-            bind:value={editedParams.shape}
+            bind:value={shapeString}
             placeholder="28, 28"
           />
         </div>
       {/if}
       
+      <!-- Dense layer properties -->
       {#if selectedLayer.type === 'dense'}
+        <!-- Number of neurons -->
         <div class="form-group">
           <label>Units</label>
           <input
@@ -55,6 +113,7 @@
           />
         </div>
         
+        <!-- Activation function selection -->
         <div class="form-group">
           <label>Activation</label>
           <select bind:value={editedParams.activation}>
@@ -66,6 +125,7 @@
           </select>
         </div>
         
+        <!-- Bias toggle with custom switch UI -->
         <div class="form-group">
           <label>Use Bias</label>
           <div class="toggle-switch">
@@ -78,6 +138,7 @@
           </div>
         </div>
         
+        <!-- Weight initialization method -->
         <div class="form-group">
           <label>Kernel Initializer</label>
           <select bind:value={editedParams.kernelInitializer}>
@@ -91,7 +152,9 @@
         </div>
       {/if}
       
+      <!-- Conv2D layer properties -->
       {#if selectedLayer.type === 'conv2d'}
+        <!-- Number of convolutional filters -->
         <div class="form-group">
           <label>Filters</label>
           <input
@@ -102,6 +165,7 @@
           />
         </div>
         
+        <!-- Size of convolutional kernel -->
         <div class="form-group">
           <label>Kernel Size</label>
           <input
@@ -112,6 +176,7 @@
           />
         </div>
         
+        <!-- Stride length for convolution -->
         <div class="form-group">
           <label>Strides</label>
           <input
@@ -122,6 +187,7 @@
           />
         </div>
         
+        <!-- Padding strategy -->
         <div class="form-group">
           <label>Padding</label>
           <select bind:value={editedParams.padding}>
@@ -130,6 +196,7 @@
           </select>
         </div>
         
+        <!-- Activation function for conv layer -->
         <div class="form-group">
           <label>Activation</label>
           <select bind:value={editedParams.activation}>
@@ -141,7 +208,9 @@
         </div>
       {/if}
       
+      <!-- MaxPooling2D layer properties -->
       {#if selectedLayer.type === 'maxpooling2d'}
+        <!-- Size of pooling window -->
         <div class="form-group">
           <label>Pool Size</label>
           <input
@@ -152,6 +221,7 @@
           />
         </div>
         
+        <!-- Stride for pooling operation -->
         <div class="form-group">
           <label>Strides</label>
           <input
@@ -162,6 +232,7 @@
           />
         </div>
         
+        <!-- Padding for pooling -->
         <div class="form-group">
           <label>Padding</label>
           <select bind:value={editedParams.padding}>
@@ -171,7 +242,9 @@
         </div>
       {/if}
       
+      <!-- Dropout layer properties -->
       {#if selectedLayer.type === 'dropout'}
+        <!-- Dropout rate (0-1) -->
         <div class="form-group">
           <label>Rate</label>
           <input
@@ -184,12 +257,14 @@
         </div>
       {/if}
       
+      <!-- Action buttons -->
       <div class="form-actions">
         <button class="btn btn-primary" on:click={handleApply}>Apply</button>
         <button class="btn btn-secondary" on:click={handleCancel}>Cancel</button>
       </div>
     </div>
   {:else}
+    <!-- Empty state when no layer is selected -->
     <p class="empty-state">Select a layer to edit its properties</p>
   {/if}
 </div>

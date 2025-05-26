@@ -1,7 +1,11 @@
 import { writable, derived } from 'svelte/store';
 import type { LayerConfig, TrainingConfig, DatasetType, ModelSummary } from './types';
 
-// Network architecture store
+/**
+ * Main store for the neural network architecture.
+ * Contains an array of layer configurations in order from input to output.
+ * Default initialized with a single input layer for MNIST.
+ */
 export const layers = writable<LayerConfig[]>([
   {
     id: 'input-1',
@@ -11,10 +15,16 @@ export const layers = writable<LayerConfig[]>([
   }
 ]);
 
-// Selected layer for editing
+/**
+ * Currently selected layer ID for property editing.
+ * When a layer is clicked in the canvas, its ID is stored here.
+ */
 export const selectedLayerId = writable<string | null>(null);
 
-// Training configuration
+/**
+ * Training hyperparameters and settings.
+ * These values control how the model learns from data.
+ */
 export const trainingConfig = writable<TrainingConfig>({
   epochs: 10,
   batchSize: 32,
@@ -24,12 +34,28 @@ export const trainingConfig = writable<TrainingConfig>({
   validationSplit: 0.2
 });
 
-// Selected dataset
+/**
+ * Currently selected dataset for training.
+ * Determines input shape and number of output classes.
+ */
 export const selectedDataset = writable<DatasetType>('mnist');
 
-// Training state
+/**
+ * Flag indicating if model training is currently in progress.
+ * Used to disable UI elements and show progress modal.
+ */
 export const isTraining = writable(false);
+
+/**
+ * Current epoch number during training (0-based).
+ * Updated by training callbacks to show progress.
+ */
 export const currentEpoch = writable(0);
+
+/**
+ * Training metrics history for all epochs.
+ * Used to plot learning curves and track model performance.
+ */
 export const trainingHistory = writable<{
   loss: number[];
   valLoss: number[];
@@ -42,10 +68,15 @@ export const trainingHistory = writable<{
   valAccuracy: []
 });
 
-// Model summary derived from layers
+/**
+ * Derived store that computes model statistics from the layer configuration.
+ * Updates automatically when layers change.
+ * Note: Full parameter calculation requires building the actual TF.js model.
+ */
 export const modelSummary = derived(layers, ($layers) => {
   // This will be calculated when we build the actual model
   // For now, return placeholder values
+  // TODO: Integrate with ModelBuilder for accurate parameter counts
   const summary: ModelSummary = {
     totalParams: 0,
     trainableParams: 0,
@@ -53,7 +84,8 @@ export const modelSummary = derived(layers, ($layers) => {
     outputShape: []
   };
   
-  // Simple parameter calculation for demo
+  // Simple output shape calculation for last layer
+  // Real implementation would trace shapes through the network
   if ($layers.length > 0) {
     const lastLayer = $layers[$layers.length - 1];
     if (lastLayer.type === 'dense') {
@@ -64,7 +96,11 @@ export const modelSummary = derived(layers, ($layers) => {
   return summary;
 });
 
-// Helper functions
+/**
+ * Adds a new layer to the network.
+ * @param layer - The layer configuration to add
+ * @param afterId - Optional ID of layer to insert after. If not provided, adds to end.
+ */
 export function addLayer(layer: LayerConfig, afterId?: string) {
   layers.update(currentLayers => {
     if (!afterId) {
@@ -82,6 +118,11 @@ export function addLayer(layer: LayerConfig, afterId?: string) {
   });
 }
 
+/**
+ * Removes a layer from the network.
+ * Also clears selection if the removed layer was selected.
+ * @param layerId - ID of the layer to remove
+ */
 export function removeLayer(layerId: string) {
   layers.update(currentLayers => {
     return currentLayers.filter(l => l.id !== layerId);
@@ -91,6 +132,12 @@ export function removeLayer(layerId: string) {
   selectedLayerId.update(selected => selected === layerId ? null : selected);
 }
 
+/**
+ * Updates the parameters of an existing layer.
+ * Merges new params with existing ones (partial update).
+ * @param layerId - ID of the layer to update
+ * @param params - New parameter values to merge
+ */
 export function updateLayer(layerId: string, params: Record<string, any>) {
   layers.update(currentLayers => {
     return currentLayers.map(layer => {
@@ -102,6 +149,12 @@ export function updateLayer(layerId: string, params: Record<string, any>) {
   });
 }
 
+/**
+ * Moves a layer up or down in the network architecture.
+ * Prevents moving layers before the input layer.
+ * @param layerId - ID of the layer to move
+ * @param direction - Direction to move ('up' towards input, 'down' towards output)
+ */
 export function moveLayer(layerId: string, direction: 'up' | 'down') {
   layers.update(currentLayers => {
     const index = currentLayers.findIndex(l => l.id === layerId);
@@ -114,7 +167,7 @@ export function moveLayer(layerId: string, direction: 'up' | 'down') {
       return currentLayers;
     }
     
-    // Don't allow moving before input layer
+    // Don't allow moving before input layer (input must always be first)
     if (newIndex === 0 && currentLayers[0].type === 'input') {
       return currentLayers;
     }
@@ -127,6 +180,10 @@ export function moveLayer(layerId: string, direction: 'up' | 'down') {
   });
 }
 
+/**
+ * Resets all training-related state.
+ * Called before starting a new training session.
+ */
 export function resetTraining() {
   currentEpoch.set(0);
   trainingHistory.set({

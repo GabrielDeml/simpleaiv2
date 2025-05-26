@@ -1,10 +1,30 @@
 <script lang="ts">
+  /**
+   * NetworkCanvas Component
+   * 
+   * Purpose: Main visual editor for designing neural networks. Displays layers
+   * as connected nodes in a vertical flow, handles drag-and-drop layer insertion,
+   * and provides interactive editing capabilities.
+   * 
+   * Key features:
+   * - Visual representation of neural network architecture
+   * - Drag-and-drop zones between layers for insertion
+   * - Layer selection and deletion
+   * - Dynamic styling based on layer type
+   * - Automatic output layer detection and highlighting
+   */
+  
   import { layers, selectedLayerId, addLayer, removeLayer } from '$lib/nn-designer/stores';
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
   import type { LayerConfig, LayerType } from '$lib/nn-designer/types';
   
+  // Tracks which layer's drop zone is being hovered during drag operations
   let dragOverLayerId: string | null = null;
   
+  /**
+   * Handles drag over events on the main canvas
+   * Prevents default to allow dropping and sets the visual drop effect
+   */
   function handleDragOver(e: DragEvent) {
     e.preventDefault();
     if (e.dataTransfer) {
@@ -12,6 +32,15 @@
     }
   }
   
+  /**
+   * Handles dropping a new layer onto the canvas
+   * @param e - The drop event containing layer type data
+   * @param afterLayerId - Optional ID of layer to insert after
+   * 
+   * Creates a new layer instance from the dropped layer type and adds it
+   * to the network. If afterLayerId is provided, inserts after that layer,
+   * otherwise appends to the end.
+   */
   function handleDrop(e: DragEvent, afterLayerId?: string) {
     e.preventDefault();
     const layerType = e.dataTransfer?.getData('layerType') as LayerType;
@@ -31,27 +60,51 @@
     dragOverLayerId = null;
   }
   
+  /**
+   * Handles drag over events on layer drop zones
+   * Sets visual feedback for the specific drop zone being hovered
+   */
   function handleLayerDragOver(e: DragEvent, layerId: string) {
     e.preventDefault();
     dragOverLayerId = layerId;
   }
   
+  /**
+   * Clears drag over state when leaving a drop zone
+   */
   function handleLayerDragLeave() {
     dragOverLayerId = null;
   }
   
+  /**
+   * Selects a layer for editing in the properties panel
+   * Updates the global selectedLayerId store
+   */
   function selectLayer(layerId: string) {
     selectedLayerId.set(layerId);
   }
   
+  /**
+   * Removes a layer from the network
+   * Input layers cannot be deleted (enforced in UI)
+   */
   function deleteLayer(layerId: string) {
     removeLayer(layerId);
   }
   
+  /**
+   * Generates display information for a layer node
+   * @param layer - The layer configuration
+   * @returns Object with formatted name, subtitle, color, and icon
+   * 
+   * Creates human-readable subtitles based on layer type and parameters.
+   * Dense layers show unit count in the title for quick reference.
+   */
   function getLayerDisplayInfo(layer: LayerConfig) {
     const definition = layerDefinitions[layer.type];
     let subtitle = '';
     
+    // Generate layer-specific subtitle with key parameters
     switch (layer.type) {
       case 'input':
         subtitle = `Shape: (${layer.params.shape.join(', ')})`;
@@ -81,22 +134,42 @@
     };
   }
   
-  // Determine if this is an output layer
+  /**
+   * Determines if a layer should be displayed as the output layer
+   * @param layer - The layer to check
+   * @param index - The layer's position in the network
+   * @returns true if this is the last layer and it's a dense layer
+   * 
+   * Output layers get special styling (orange color) to indicate
+   * they produce the final network predictions.
+   */
   function isOutputLayer(layer: LayerConfig, index: number): boolean {
     return index === $layers.length - 1 && layer.type === 'dense';
   }
 </script>
 
+<!-- Main canvas area that accepts layer drops -->
 <div class="network-canvas" on:dragover={handleDragOver} on:drop={(e) => handleDrop(e)}>
+  <!-- Container for the vertical flow of layers -->
   <div class="network-flow">
+    <!-- Background line connecting all layers visually -->
     <div class="flow-line"></div>
     
+    <!-- Iterate through all layers in the network -->
     {#each $layers as layer, index (layer.id)}
+      <!-- Pre-compute display values for this layer -->
       {@const displayInfo = getLayerDisplayInfo(layer)}
       {@const isOutput = isOutputLayer(layer, index)}
       {@const isSelected = $selectedLayerId === layer.id}
       
+      <!-- Container for layer node and its connection elements -->
       <div class="layer-container">
+        <!-- 
+          The layer node itself - clickable, selectable, with dynamic styling
+          - Color changes based on whether it's an output layer
+          - Shows selection ring when selected
+          - Includes edit/delete actions
+        -->
         <div
           class="layer-node"
           class:selected={isSelected}
@@ -106,35 +179,50 @@
           role="button"
           tabindex="0"
         >
+          <!-- Animated selection indicator -->
           {#if isSelected}
             <div class="selection-ring"></div>
           {/if}
           
+          <!-- Colored accent bar on left side -->
           <div class="layer-accent"></div>
+          
+          <!-- Layer information display -->
           <div class="layer-content">
             <div class="layer-title">{isOutput ? 'Output' : displayInfo.name}</div>
             <div class="layer-subtitle">{displayInfo.subtitle}</div>
           </div>
           
+          <!-- Action buttons (edit/delete) -->
           <div class="layer-actions">
+            <!-- Delete button - hidden for input layers -->
             {#if layer.type !== 'input'}
               <button class="delete-btn" on:click|stopPropagation={() => deleteLayer(layer.id)}>
                 ×
               </button>
             {/if}
+            <!-- Edit button - highlighted when layer is selected -->
             <button class="edit-btn" class:active={isSelected}>
               Edit
             </button>
           </div>
         </div>
         
+        <!-- Connection elements between layers -->
         {#if index < $layers.length - 1}
+          <!-- Visual dots connecting layers -->
           <div class="connection">
             <span class="dot"></span>
             <span class="dot"></span>
             <span class="dot"></span>
           </div>
           
+          <!-- 
+            Drop zone for inserting new layers
+            - Appears between each pair of layers
+            - Shows visual feedback when dragging over
+            - Clicking could also insert a layer here
+          -->
           <div
             class="add-layer-btn"
             class:drag-over={dragOverLayerId === layer.id}
@@ -150,6 +238,7 @@
       </div>
     {/each}
     
+    <!-- Empty state when no layers exist -->
     {#if $layers.length === 0}
       <div class="empty-state">
         <p>Drag layers here to build your network</p>

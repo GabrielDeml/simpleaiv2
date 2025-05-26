@@ -1,11 +1,29 @@
 <script lang="ts">
+  /**
+   * TrainingConfig Component
+   * 
+   * Purpose: Provides a comprehensive form for configuring neural network
+   * training hyperparameters. All settings are bound to a global store
+   * for use during model training.
+   * 
+   * Key features:
+   * - Grid layout for efficient space usage
+   * - Input validation with min/max constraints
+   * - Real-time binding to trainingConfig store
+   * - Percentage display for validation split
+   * - Grouped related settings (optimizer, loss, etc.)
+   */
+  
   import { trainingConfig } from '$lib/nn-designer/stores';
 </script>
 
+<!-- Training configuration card -->
 <div class="training-config">
   <h2>Training Configuration</h2>
   
+  <!-- Grid layout for training hyperparameters -->
   <div class="config-grid">
+    <!-- Number of training epochs -->
     <div class="config-field">
       <label for="epochs">Epochs</label>
       <input
@@ -17,6 +35,7 @@
       />
     </div>
     
+    <!-- Batch size for mini-batch gradient descent -->
     <div class="config-field">
       <label for="batch-size">Batch Size</label>
       <input
@@ -28,6 +47,7 @@
       />
     </div>
     
+    <!-- Learning rate for optimizer -->
     <div class="config-field">
       <label for="learning-rate">Learning Rate</label>
       <input
@@ -40,6 +60,7 @@
       />
     </div>
     
+    <!-- Optimization algorithm selection -->
     <div class="config-field">
       <label for="optimizer">Optimizer</label>
       <select id="optimizer" bind:value={$trainingConfig.optimizer}>
@@ -49,6 +70,11 @@
       </select>
     </div>
     
+    <!-- 
+      Validation split percentage
+      - Stored as decimal (0.2) but displayed as percentage (20%)
+      - Custom input handler converts between formats
+    -->
     <div class="config-field">
       <label for="validation-split">Validation Split</label>
       <div class="input-with-suffix">
@@ -65,6 +91,7 @@
       </div>
     </div>
     
+    <!-- Loss function selection (spans 2 columns for wider dropdown) -->
     <div class="config-field wide">
       <label for="loss">Loss Function</label>
       <select id="loss" bind:value={$trainingConfig.loss}>

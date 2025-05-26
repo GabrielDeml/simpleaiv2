@@ -1,10 +1,34 @@
 <script lang="ts">
+  /**
+   * LayerPalette Component
+   * 
+   * Purpose: Provides a draggable palette of available neural network layers
+   * that users can drag onto the NetworkCanvas or click to add to the model.
+   * 
+   * Key features:
+   * - Displays all available layer types from layerDefinitions
+   * - Supports drag-and-drop to NetworkCanvas
+   * - Click-to-add functionality as an alternative to dragging
+   * - Keyboard accessibility (Enter/Space to add layers)
+   * - Visual feedback on hover and during drag operations
+   */
+  
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
   import { addLayer } from '$lib/nn-designer/stores';
   import type { LayerType } from '$lib/nn-designer/types';
   
+  // Tracks which layer type is currently being dragged (for potential visual feedback)
   let draggedLayerType: LayerType | null = null;
   
+  /**
+   * Handles the start of a drag operation
+   * @param e - The drag event containing dataTransfer object
+   * @param layerType - The type of layer being dragged (input, dense, conv2d, etc.)
+   * 
+   * Sets up the drag data transfer with the layer type so NetworkCanvas
+   * can receive it on drop. The 'copy' effect indicates we're creating
+   * a new instance, not moving an existing layer.
+   */
   function handleDragStart(e: DragEvent, layerType: LayerType) {
     draggedLayerType = layerType;
     if (e.dataTransfer) {
@@ -13,6 +37,14 @@
     }
   }
   
+  /**
+   * Handles keyboard interaction for accessibility
+   * @param e - Keyboard event
+   * @param layerType - The layer type to add when activated
+   * 
+   * Allows users to add layers using keyboard navigation by pressing
+   * Enter or Space when a layer card is focused.
+   */
   function handleKeyDown(e: KeyboardEvent, layerType: LayerType) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -20,14 +52,38 @@
     }
   }
   
+  /**
+   * Cleans up after a drag operation ends
+   * Resets the draggedLayerType to remove any visual drag indicators
+   */
   function handleDragEnd() {
     draggedLayerType = null;
   }
   
+  /**
+   * Generates a unique ID for a new layer instance
+   * @param type - The layer type
+   * @returns A unique ID combining type and timestamp
+   * 
+   * Using timestamp ensures uniqueness for layers created in quick succession
+   */
   function generateLayerId(type: LayerType): string {
     return `${type}-${Date.now()}`;
   }
   
+  /**
+   * Handles click events to add a layer directly (without dragging)
+   * @param layerType - The type of layer to add
+   * 
+   * Creates a new layer instance with:
+   * - Unique ID
+   * - Layer type
+   * - Display name from layer definition
+   * - Default parameters copied from layer definition
+   * 
+   * The spread operator on defaultParams ensures each layer gets its own
+   * parameter object instance, preventing shared state issues.
+   */
   function handleClick(layerType: LayerType) {
     const definition = layerDefinitions[layerType];
     const newLayer = {
@@ -41,11 +97,21 @@
   }
 </script>
 
+<!-- Main container for the layer palette sidebar -->
 <div class="layer-palette">
   <h3>LAYERS (Drag to add)</h3>
   
+  <!-- Container for all layer cards -->
   <div class="layer-cards">
+    <!-- Iterate through all available layer types from layerDefinitions -->
     {#each Object.entries(layerDefinitions) as [type, definition]}
+      <!-- 
+        Individual layer card that can be dragged or clicked
+        - CSS custom property for dynamic coloring based on layer type
+        - draggable attribute enables HTML5 drag functionality
+        - Multiple event handlers for different interaction methods
+        - ARIA attributes for accessibility (role="button" + tabindex)
+      -->
       <div
         class="layer-card"
         style="--layer-color: {definition.color}"
@@ -57,11 +123,18 @@
         role="button"
         tabindex="0"
       >
+        <!-- Colored accent bar on the left side of the card -->
         <div class="layer-accent"></div>
+        
+        <!-- Icon container with layer-specific icon/emoji -->
         <div class="layer-icon">
           <span>{definition.icon}</span>
         </div>
+        
+        <!-- Layer type display name -->
         <div class="layer-name">{definition.displayName}</div>
+        
+        <!-- Decorative dots on the right (visual hint for draggability) -->
         <div class="layer-dots">
           <span></span>
           <span></span>
