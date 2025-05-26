@@ -42,6 +42,17 @@
     alert('Model saved to browser storage!');
   }
   
+  // Control visibility of export dropdown
+  let showExportDropdown = false;
+
+  // Close dropdown when clicking outside
+  function handleClickOutside(event: MouseEvent) {
+    const target = event.target as Element;
+    if (!target.closest('.export-dropdown')) {
+      showExportDropdown = false;
+    }
+  }
+
   // Export trained model to downloadable files
   async function handleExport() {
     try {
@@ -50,6 +61,141 @@
     } catch (error) {
       alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  // Export model configuration as JSON
+  function handleExportJSON() {
+    const modelData = {
+      layers: $layers,
+      trainingConfig: {
+        epochs: 10,
+        batchSize: 32,
+        learningRate: 0.001,
+        optimizer: 'adam',
+        validationSplit: 0.2,
+        loss: 'categoricalCrossentropy'
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(modelData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'neural-network-config.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+    showExportDropdown = false;
+  }
+
+  // Export to Google Colab with instructions
+  function handleExportColab() {
+    const colabCode = `# Neural Network Training in Google Colab
+# Generated from NN Designer
+
+# Install TensorFlow
+!pip install tensorflow
+
+import tensorflow as tf
+import numpy as np
+from tensorflow import keras
+from tensorflow.keras import layers
+
+# Model Configuration
+model_config = ${JSON.stringify($layers, null, 2)}
+
+# Build the model
+model = keras.Sequential()
+
+# Add layers based on configuration
+for layer_config in model_config:
+    layer_type = layer_config['type']
+    params = layer_config['params']
+    
+    if layer_type == 'input':
+        # Input layer is implicit in Sequential model
+        pass
+    elif layer_type == 'dense':
+        model.add(layers.Dense(
+            units=params['units'],
+            activation=params.get('activation', 'relu')
+        ))
+    elif layer_type == 'conv2d':
+        model.add(layers.Conv2D(
+            filters=params['filters'],
+            kernel_size=params['kernelSize'],
+            activation=params.get('activation', 'relu')
+        ))
+    elif layer_type == 'flatten':
+        model.add(layers.Flatten())
+    elif layer_type == 'dropout':
+        model.add(layers.Dropout(params['rate']))
+
+# Compile the model
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Display model summary
+model.summary()
+
+# Load your dataset here
+# For MNIST example:
+# (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+# x_train = x_train.reshape(-1, 28, 28, 1).astype('float32') / 255.0
+# x_test = x_test.reshape(-1, 28, 28, 1).astype('float32') / 255.0
+# y_train = keras.utils.to_categorical(y_train, 10)
+# y_test = keras.utils.to_categorical(y_test, 10)
+
+# Train the model
+# history = model.fit(
+#     x_train, y_train,
+#     batch_size=32,
+#     epochs=10,
+#     validation_data=(x_test, y_test),
+#     verbose=1
+# )
+
+print("Model configuration exported successfully!")
+print("Next steps:")
+print("1. Upload your dataset or use a built-in dataset like MNIST")
+print("2. Uncomment and modify the data loading section")
+print("3. Uncomment the training section")
+print("4. Run the notebook to train your model with GPU acceleration!")
+`;
+
+    const blob = new Blob([colabCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'neural-network-colab.py';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+    
+    // Show instructions
+    alert(`Colab export complete! 
+
+Instructions:
+1. Go to https://colab.research.google.com/
+2. Click "Upload" and select the downloaded .py file
+3. Follow the comments in the code to:
+   - Load your dataset
+   - Train your model with GPU acceleration
+   - Evaluate performance
+
+The exported file contains your complete model architecture and training setup.`);
+    
+    showExportDropdown = false;
   }
   
   // Clear current model and reset to default state
@@ -70,7 +216,7 @@
 </script>
 
 <!-- Main container for the neural network designer application -->
-<div class="designer-container">
+<div class="designer-container" on:click={handleClickOutside}>
   <!-- Top toolbar with action buttons -->
   <div class="top-bar">
     <div class="toolbar">
@@ -81,7 +227,21 @@
         <span class="icon">📊</span> Show Training
       </button>
       <button class="btn btn-secondary" on:click={handleSave}>Save</button>
-      <button class="btn btn-secondary" on:click={handleExport}>Export</button>
+      <div class="export-dropdown" class:open={showExportDropdown}>
+        <button class="btn btn-secondary export-trigger" on:click={() => showExportDropdown = !showExportDropdown}>
+          Export ▼
+        </button>
+        {#if showExportDropdown}
+          <div class="export-menu">
+            <button class="export-option" on:click={handleExportJSON}>
+              📄 Download JSON
+            </button>
+            <button class="export-option" on:click={handleExportColab}>
+              📓 Download Colab
+            </button>
+          </div>
+        {/if}
+      </div>
       <button class="btn btn-danger" on:click={handleClear}>Clear</button>
     </div>
     <div class="model-name">Model: my_neural_network</div>
@@ -327,5 +487,56 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+  }
+
+  .export-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .export-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .export-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 160px;
+    margin-top: 4px;
+  }
+
+  .export-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    color: #d4d4d4;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s;
+  }
+
+  .export-option:hover {
+    background: #262626;
+  }
+
+  .export-option:first-child {
+    border-radius: 6px 6px 0 0;
+  }
+
+  .export-option:last-child {
+    border-radius: 0 0 6px 6px;
   }
 </style>
