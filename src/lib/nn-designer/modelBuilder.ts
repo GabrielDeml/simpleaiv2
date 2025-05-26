@@ -89,6 +89,16 @@ export class ModelBuilder {
         case 'flatten':
           this.model.add(tf.layers.flatten());
           break;
+
+        case 'output':
+          this.model.add(tf.layers.dense({
+            units: layer.params.units,
+            activation: layer.params.activation as any,
+            useBias: layer.params.useBias || true,
+            kernelInitializer: layer.params.kernelInitializer || 'glorotUniform',
+            inputShape: isFirstLayer ? inputShape : undefined
+          }));
+          break;
       }
     }
 

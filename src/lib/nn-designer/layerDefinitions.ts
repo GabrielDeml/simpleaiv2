@@ -70,5 +70,15 @@ export const layerDefinitions: Record<LayerType, LayerDefinition> = {
     icon: 'F',
     color: '#a855f7',
     defaultParams: {}
+  },
+  output: {
+    type: 'output',
+    displayName: 'Output',
+    icon: 'O',
+    color: '#f59e0b',
+    defaultParams: {
+      units: 10,
+      activation: 'softmax'
+    }
   }
 };

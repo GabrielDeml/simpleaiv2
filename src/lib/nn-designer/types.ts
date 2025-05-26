@@ -2,7 +2,7 @@
  * Supported layer types in the neural network designer.
  * Each type corresponds to a TensorFlow.js layer implementation.
  */
-export type LayerType = 'input' | 'dense' | 'conv2d' | 'maxpooling2d' | 'dropout' | 'flatten';
+export type LayerType = 'input' | 'dense' | 'conv2d' | 'maxpooling2d' | 'dropout' | 'flatten' | 'output';
 
 /**
  * Configuration for a single layer in the neural network.
@@ -90,6 +90,21 @@ export interface DropoutLayerParams {
  */
 export interface FlattenLayerParams {
   // No parameters needed - this layer simply reshapes the input
+}
+
+/**
+ * Parameters for output layers.
+ * Similar to dense layers but specifically designed as final prediction layer.
+ */
+export interface OutputLayerParams {
+  /** Number of output classes/units */
+  units: number;
+  /** Activation function, typically 'softmax' for classification */
+  activation: 'relu' | 'sigmoid' | 'tanh' | 'softmax' | 'linear';
+  /** Whether to include bias terms (usually true) */
+  useBias: boolean;
+  /** Weight initialization strategy */
+  kernelInitializer: string;
 }
 
 /**

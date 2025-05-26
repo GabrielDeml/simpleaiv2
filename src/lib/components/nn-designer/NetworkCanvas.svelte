@@ -43,6 +43,12 @@
    */
   function handleDrop(e: DragEvent, afterLayerId?: string) {
     e.preventDefault();
+    
+    // If dropping on a specific zone, stop event propagation
+    if (afterLayerId) {
+      e.stopPropagation();
+    }
+    
     const layerType = e.dataTransfer?.getData('layerType') as LayerType;
     
     if (layerType && layerDefinitions[layerType]) {
@@ -124,10 +130,13 @@
       case 'flatten':
         subtitle = 'Flatten layer';
         break;
+      case 'output':
+        subtitle = `${layer.params.activation} activation`;
+        break;
     }
     
     return {
-      name: layer.type === 'dense' ? `${layer.name} (${layer.params.units})` : layer.name,
+      name: (layer.type === 'dense' || layer.type === 'output') ? `${layer.name} (${layer.params.units})` : layer.name,
       subtitle,
       color: definition.color,
       icon: definition.icon
@@ -144,7 +153,7 @@
    * they produce the final network predictions.
    */
   function isOutputLayer(layer: LayerConfig, index: number): boolean {
-    return index === $layers.length - 1 && layer.type === 'dense';
+    return layer.type === 'output' || (index === $layers.length - 1 && layer.type === 'dense');
   }
 </script>
 
@@ -189,7 +198,7 @@
           
           <!-- Layer information display -->
           <div class="layer-content">
-            <div class="layer-title">{isOutput ? 'Output' : displayInfo.name}</div>
+            <div class="layer-title">{displayInfo.name}</div>
             <div class="layer-subtitle">{displayInfo.subtitle}</div>
           </div>
           
