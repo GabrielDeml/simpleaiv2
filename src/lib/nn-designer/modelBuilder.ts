@@ -87,8 +87,14 @@ export class ModelBuilder {
           break;
 
         case 'flatten':
+          // For image data, ensure we handle the channel dimension properly
+          // If inputShape is 2D (e.g., [28, 28]), add channel dimension for compatibility
+          const flattenInputShape = isFirstLayer && inputShape 
+            ? inputShape.length === 2 ? [...inputShape, 1] : inputShape
+            : undefined;
+            
           this.model.add(tf.layers.flatten({
-            inputShape: isFirstLayer ? inputShape : undefined
+            inputShape: flattenInputShape
           }));
           break;
 
