@@ -5,19 +5,10 @@
 -->
 
 <script>
-  // Import components from the lib directory
-  // $lib is a SvelteKit alias that points to src/lib
-  import MnistTrainer from '$lib/components/MnistTrainer.svelte';
+  import NeuralNetworkDesigner from '$lib/components/NeuralNetworkDesigner.svelte';
 </script>
 
-<!-- The HTML content of the page -->
-<h1>Simple AI - MNIST CNN Demo</h1>
-
-<!-- 
-  Using a Svelte component is just like using an HTML element
-  The component will be rendered here with all its functionality
--->
-<MnistTrainer />
+<NeuralNetworkDesigner />
 
 <!-- 
   Key Svelte/SvelteKit concepts shown here:

@@ -1,0 +1,358 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions -->
+  <defs>
+    <!-- Subtle gradients -->
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Clean shadows -->
+    <filter id="cardShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
+    </filter>
+    
+    <filter id="btnShadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#bgGradient)"/>
+  
+  <!-- Left Sidebar -->
+  <rect x="0" y="0" width="280" height="800" fill="#0f0f0f"/>
+  
+  <!-- Sidebar Header -->
+  <rect x="0" y="0" width="280" height="60" fill="#171717"/>
+  <text x="24" y="38" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="20" font-weight="600">NN Designer</text>
+  
+  <!-- Model Types Section -->
+  <text x="24" y="88" fill="#737373" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" letter-spacing="0.5">MODEL TYPES</text>
+  
+  <!-- Sequential (Active) -->
+  <rect x="24" y="104" width="232" height="40" rx="8" fill="#052e16" stroke="#16a34a" stroke-width="1"/>
+  <circle cx="44" cy="124" r="4" fill="#22c55e"/>
+  <text x="60" y="129" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">Sequential</text>
+  <rect x="204" y="114" width="42" height="20" rx="10" fill="#16a34a" fill-opacity="0.2"/>
+  <text x="225" y="127" fill="#22c55e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Active</text>
+  
+  <!-- Functional API -->
+  <rect x="24" y="152" width="232" height="40" rx="8" fill="#171717" stroke="#262626" stroke-width="1"/>
+  <circle cx="44" cy="172" r="4" fill="none" stroke="#525252" stroke-width="1"/>
+  <text x="60" y="177" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="14">Functional API</text>
+  
+  <!-- Layers Section -->
+  <text x="24" y="224" fill="#737373" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" letter-spacing="0.5">LAYERS (Drag to add)</text>
+  
+  <!-- Layer Palette -->
+  <g id="layer-cards">
+    <!-- Input Layer -->
+    <rect x="24" y="240" width="232" height="48" rx="8" fill="#171717" stroke="#8b5cf6" stroke-width="1" filter="url(#cardShadow)"/>
+    <rect x="24" y="240" width="4" height="48" rx="2" fill="#8b5cf6"/>
+    <circle cx="52" cy="264" r="12" fill="#8b5cf6" fill-opacity="0.2"/>
+    <text x="52" y="268" fill="#8b5cf6" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">I</text>
+    <text x="76" y="268" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">Input Layer</text>
+    <circle cx="228" cy="264" r="2" fill="#8b5cf6" opacity="0.5"/>
+    <circle cx="236" cy="264" r="2" fill="#8b5cf6" opacity="0.5"/>
+    <circle cx="244" cy="264" r="2" fill="#8b5cf6" opacity="0.5"/>
+    
+    <!-- Dense -->
+    <rect x="24" y="296" width="232" height="48" rx="8" fill="#171717" stroke="#22c55e" stroke-width="1" filter="url(#cardShadow)"/>
+    <rect x="24" y="296" width="4" height="48" rx="2" fill="#22c55e"/>
+    <circle cx="52" cy="320" r="12" fill="#22c55e" fill-opacity="0.2"/>
+    <text x="52" y="324" fill="#22c55e" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">D</text>
+    <text x="76" y="324" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">Dense</text>
+    <circle cx="228" cy="320" r="2" fill="#22c55e" opacity="0.5"/>
+    <circle cx="236" cy="320" r="2" fill="#22c55e" opacity="0.5"/>
+    <circle cx="244" cy="320" r="2" fill="#22c55e" opacity="0.5"/>
+    
+    <!-- Conv2D -->
+    <rect x="24" y="352" width="232" height="48" rx="8" fill="#171717" stroke="#f59e0b" stroke-width="1" filter="url(#cardShadow)"/>
+    <rect x="24" y="352" width="4" height="48" rx="2" fill="#f59e0b"/>
+    <circle cx="52" cy="376" r="12" fill="#f59e0b" fill-opacity="0.2"/>
+    <text x="52" y="380" fill="#f59e0b" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">C</text>
+    <text x="76" y="380" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">Conv2D</text>
+    <circle cx="228" cy="376" r="2" fill="#f59e0b" opacity="0.5"/>
+    <circle cx="236" cy="376" r="2" fill="#f59e0b" opacity="0.5"/>
+    <circle cx="244" cy="376" r="2" fill="#f59e0b" opacity="0.5"/>
+    
+    <!-- Dropout -->
+    <rect x="24" y="408" width="232" height="48" rx="8" fill="#171717" stroke="#ef4444" stroke-width="1" filter="url(#cardShadow)"/>
+    <rect x="24" y="408" width="4" height="48" rx="2" fill="#ef4444"/>
+    <circle cx="52" cy="432" r="12" fill="#ef4444" fill-opacity="0.2"/>
+    <text x="52" y="436" fill="#ef4444" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Dr</text>
+    <text x="76" y="436" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">Dropout</text>
+    <circle cx="228" cy="432" r="2" fill="#ef4444" opacity="0.5"/>
+    <circle cx="236" cy="432" r="2" fill="#ef4444" opacity="0.5"/>
+    <circle cx="244" cy="432" r="2" fill="#ef4444" opacity="0.5"/>
+    
+    <!-- MaxPooling2D -->
+    <rect x="24" y="464" width="232" height="48" rx="8" fill="#171717" stroke="#06b6d4" stroke-width="1" filter="url(#cardShadow)"/>
+    <rect x="24" y="464" width="4" height="48" rx="2" fill="#06b6d4"/>
+    <circle cx="52" cy="488" r="12" fill="#06b6d4" fill-opacity="0.2"/>
+    <text x="52" y="492" fill="#06b6d4" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">MP</text>
+    <text x="76" y="492" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">MaxPooling2D</text>
+    <circle cx="228" cy="488" r="2" fill="#06b6d4" opacity="0.5"/>
+    <circle cx="236" cy="488" r="2" fill="#06b6d4" opacity="0.5"/>
+    <circle cx="244" cy="488" r="2" fill="#06b6d4" opacity="0.5"/>
+    
+    <!-- Flatten -->
+    <rect x="24" y="520" width="232" height="48" rx="8" fill="#171717" stroke="#a855f7" stroke-width="1" filter="url(#cardShadow)"/>
+    <rect x="24" y="520" width="4" height="48" rx="2" fill="#a855f7"/>
+    <circle cx="52" cy="544" r="12" fill="#a855f7" fill-opacity="0.2"/>
+    <text x="52" y="548" fill="#a855f7" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">F</text>
+    <text x="76" y="548" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">Flatten</text>
+    <circle cx="228" cy="544" r="2" fill="#a855f7" opacity="0.5"/>
+    <circle cx="236" cy="544" r="2" fill="#a855f7" opacity="0.5"/>
+    <circle cx="244" cy="544" r="2" fill="#a855f7" opacity="0.5"/>
+  </g>
+  
+  <!-- Dataset Section -->
+  <text x="24" y="600" fill="#737373" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" letter-spacing="0.5">DATASET</text>
+  
+  <!-- MNIST (Selected) -->
+  <rect x="24" y="616" width="232" height="36" rx="8" fill="#052e16" stroke="#16a34a" stroke-width="1"/>
+  <circle cx="44" cy="634" r="5" fill="#22c55e"/>
+  <circle cx="44" cy="634" r="3" fill="#ffffff"/>
+  <text x="60" y="639" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="13">MNIST</text>
+  <text x="240" y="639" fill="#737373" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">28×28</text>
+  
+  <!-- CIFAR-10 -->
+  <rect x="24" y="660" width="232" height="36" rx="8" fill="#171717" stroke="#262626" stroke-width="1"/>
+  <circle cx="44" cy="678" r="5" fill="none" stroke="#525252" stroke-width="1"/>
+  <text x="60" y="683" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="13">CIFAR-10</text>
+  <text x="240" y="683" fill="#525252" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">32×32×3</text>
+  
+  <!-- Fashion-MNIST -->
+  <rect x="24" y="704" width="232" height="36" rx="8" fill="#171717" stroke="#262626" stroke-width="1"/>
+  <circle cx="44" cy="722" r="5" fill="none" stroke="#525252" stroke-width="1"/>
+  <text x="60" y="727" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="13">Fashion-MNIST</text>
+  <text x="240" y="727" fill="#525252" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">28×28</text>
+  
+  <!-- Upload Custom -->
+  <rect x="24" y="748" width="232" height="36" rx="8" fill="none" stroke="#525252" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <text x="140" y="770" fill="#737373" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">📁 Upload Custom Dataset</text>
+  
+  <!-- Main Canvas Area -->
+  <rect x="280" y="60" width="920" height="740" fill="#000000"/>
+  
+  <!-- Top Bar -->
+  <rect x="280" y="0" width="920" height="60" fill="#0a0a0a"/>
+  
+  <!-- Toolbar -->
+  <g id="toolbar">
+    <!-- Run Button -->
+    <rect x="320" y="15" width="100" height="32" rx="6" fill="url(#primaryGradient)" filter="url(#btnShadow)" cursor="pointer"/>
+    <text x="370" y="35" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14" font-weight="500" text-anchor="middle">▶ Run</text>
+    
+    <!-- Save Button -->
+    <rect x="436" y="15" width="80" height="32" rx="6" fill="#1a1a1a" stroke="#333333" stroke-width="1" cursor="pointer"/>
+    <text x="476" y="35" fill="#d4d4d4" font-family="-apple-system, sans-serif" font-size="14" text-anchor="middle">Save</text>
+    
+    <!-- Export Button -->
+    <rect x="532" y="15" width="80" height="32" rx="6" fill="#1a1a1a" stroke="#333333" stroke-width="1" cursor="pointer"/>
+    <text x="572" y="35" fill="#d4d4d4" font-family="-apple-system, sans-serif" font-size="14" text-anchor="middle">Export</text>
+    
+    <!-- Clear Button -->
+    <rect x="628" y="15" width="80" height="32" rx="6" fill="#1a1a1a" stroke="#333333" stroke-width="1" cursor="pointer"/>
+    <text x="668" y="35" fill="#ef4444" font-family="-apple-system, sans-serif" font-size="14" text-anchor="middle">Clear</text>
+  </g>
+  
+  <!-- Model Name -->
+  <text x="1160" y="35" fill="#737373" font-family="-apple-system, sans-serif" font-size="13" text-anchor="end">Model: my_neural_network</text>
+  
+  <!-- Neural Network Visualization -->
+  <g transform="translate(600, 140)">
+    <!-- Flow Line -->
+    <line x1="0" y1="60" x2="0" y2="420" stroke="#262626" stroke-width="2"/>
+    
+    <!-- Input Layer -->
+    <g>
+      <rect x="-100" y="0" width="200" height="60" rx="8" fill="#171717" stroke="#8b5cf6" stroke-width="1.5" filter="url(#cardShadow)"/>
+      <rect x="-100" y="0" width="4" height="60" rx="2" fill="#8b5cf6"/>
+      <text x="0" y="26" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="15" font-weight="500" text-anchor="middle">Input Layer</text>
+      <text x="0" y="44" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">Shape: (28, 28)</text>
+      
+      <rect x="60" y="20" width="32" height="20" rx="4" fill="#262626" cursor="pointer"/>
+      <text x="76" y="33" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Edit</text>
+    </g>
+    
+    <!-- Connection 1 -->
+    <circle cx="0" cy="70" r="2" fill="#525252"/>
+    <circle cx="0" cy="78" r="2" fill="#525252"/>
+    <circle cx="0" cy="86" r="2" fill="#525252"/>
+    
+    <!-- Add Button 1 -->
+    <rect x="-40" y="96" width="80" height="28" rx="14" fill="#0a0a0a" stroke="#333333" stroke-width="1" stroke-dasharray="4,2" cursor="pointer"/>
+    <text x="0" y="114" fill="#737373" font-family="-apple-system, sans-serif" font-size="16" text-anchor="middle">+</text>
+    
+    <!-- Dense Layer 1 (Selected) -->
+    <g transform="translate(0, 140)">
+      <rect x="-110" y="-8" width="220" height="76" rx="12" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="8,4" opacity="0.5"/>
+      
+      <rect x="-100" y="0" width="200" height="60" rx="8" fill="#171717" stroke="#22c55e" stroke-width="1.5" filter="url(#cardShadow)"/>
+      <rect x="-100" y="0" width="4" height="60" rx="2" fill="#22c55e"/>
+      <text x="0" y="26" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="15" font-weight="500" text-anchor="middle">Dense (128)</text>
+      <text x="0" y="44" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">ReLU activation</text>
+      
+      <circle cx="82" cy="12" r="8" fill="#ef4444" cursor="pointer"/>
+      <text x="82" y="16" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">×</text>
+      
+      <rect x="60" y="20" width="32" height="20" rx="4" fill="#22c55e" cursor="pointer" filter="url(#btnShadow)"/>
+      <text x="76" y="33" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Edit</text>
+    </g>
+    
+    <!-- Connection 2 -->
+    <circle cx="0" cy="210" r="2" fill="#525252"/>
+    <circle cx="0" cy="218" r="2" fill="#525252"/>
+    <circle cx="0" cy="226" r="2" fill="#525252"/>
+    
+    <!-- Add Button 2 -->
+    <rect x="-40" y="236" width="80" height="28" rx="14" fill="#0a0a0a" stroke="#333333" stroke-width="1" stroke-dasharray="4,2" cursor="pointer"/>
+    <text x="0" y="254" fill="#737373" font-family="-apple-system, sans-serif" font-size="16" text-anchor="middle">+</text>
+    
+    <!-- Dense Layer 2 -->
+    <g transform="translate(0, 280)">
+      <rect x="-100" y="0" width="200" height="60" rx="8" fill="#171717" stroke="#22c55e" stroke-width="1" filter="url(#cardShadow)"/>
+      <rect x="-100" y="0" width="4" height="60" rx="2" fill="#22c55e"/>
+      <text x="0" y="26" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="15" font-weight="500" text-anchor="middle">Dense (64)</text>
+      <text x="0" y="44" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">ReLU activation</text>
+      
+      <circle cx="82" cy="12" r="8" fill="#ef4444" opacity="0.6" cursor="pointer"/>
+      <text x="82" y="16" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">×</text>
+      
+      <rect x="60" y="20" width="32" height="20" rx="4" fill="#262626" cursor="pointer"/>
+      <text x="76" y="33" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Edit</text>
+    </g>
+    
+    <!-- Connection 3 -->
+    <circle cx="0" cy="350" r="2" fill="#525252"/>
+    <circle cx="0" cy="358" r="2" fill="#525252"/>
+    <circle cx="0" cy="366" r="2" fill="#525252"/>
+    
+    <!-- Add Button 3 -->
+    <rect x="-40" y="376" width="80" height="28" rx="14" fill="#0a0a0a" stroke="#333333" stroke-width="1" stroke-dasharray="4,2" cursor="pointer"/>
+    <text x="0" y="394" fill="#737373" font-family="-apple-system, sans-serif" font-size="16" text-anchor="middle">+</text>
+    
+    <!-- Output Layer -->
+    <g transform="translate(0, 420)">
+      <rect x="-100" y="0" width="200" height="60" rx="8" fill="#171717" stroke="#f59e0b" stroke-width="1.5" filter="url(#cardShadow)"/>
+      <rect x="-100" y="0" width="4" height="60" rx="2" fill="#f59e0b"/>
+      <text x="0" y="26" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="15" font-weight="500" text-anchor="middle">Output (10)</text>
+      <text x="0" y="44" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">Softmax activation</text>
+      
+      <rect x="60" y="20" width="32" height="20" rx="4" fill="#262626" cursor="pointer"/>
+      <text x="76" y="33" fill="#a3a3a3" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Edit</text>
+    </g>
+  </g>
+  
+  <!-- Right Panel Container -->
+  <g>
+    <!-- Layer Properties Panel -->
+    <rect x="900" y="90" width="280" height="320" rx="8" fill="#0f0f0f" filter="url(#cardShadow)"/>
+    <text x="920" y="120" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="500">Layer Properties</text>
+    <text x="920" y="144" fill="#22c55e" font-family="-apple-system, sans-serif" font-size="14">Dense Layer (Layer 2)</text>
+    
+    <!-- Units Field -->
+    <text x="920" y="176" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Units</text>
+    <rect x="920" y="184" width="240" height="32" rx="6" fill="#000000" stroke="#262626" stroke-width="1"/>
+    <text x="932" y="204" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">128</text>
+    
+    <!-- Activation Field -->
+    <text x="920" y="236" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Activation</text>
+    <rect x="920" y="244" width="240" height="32" rx="6" fill="#000000" stroke="#262626" stroke-width="1"/>
+    <text x="932" y="264" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">relu</text>
+    <text x="1144" y="264" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">▼</text>
+    
+    <!-- Use Bias Toggle -->
+    <text x="920" y="296" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Use Bias</text>
+    <rect x="920" y="304" width="44" height="24" rx="12" fill="#22c55e" cursor="pointer"/>
+    <circle cx="952" cy="316" r="10" fill="#ffffff"/>
+    
+    <!-- Kernel Initializer -->
+    <text x="920" y="348" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Kernel Initializer</text>
+    <rect x="920" y="356" width="240" height="32" rx="6" fill="#000000" stroke="#262626" stroke-width="1"/>
+    <text x="932" y="376" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14">glorot_uniform</text>
+    <text x="1144" y="376" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">▼</text>
+    
+    <!-- Buttons -->
+    <rect x="920" y="404" width="110" height="32" rx="6" fill="url(#primaryGradient)" cursor="pointer" filter="url(#btnShadow)"/>
+    <text x="975" y="424" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="14" font-weight="500" text-anchor="middle">Apply</text>
+    
+    <rect x="1040" y="404" width="110" height="32" rx="6" fill="#1a1a1a" stroke="#333333" stroke-width="1" cursor="pointer"/>
+    <text x="1095" y="424" fill="#d4d4d4" font-family="-apple-system, sans-serif" font-size="14" text-anchor="middle">Cancel</text>
+    
+    <!-- Model Summary Panel -->
+    <rect x="900" y="450" width="280" height="120" rx="8" fill="#0f0f0f" filter="url(#cardShadow)"/>
+    <text x="920" y="480" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="500">Model Summary</text>
+    
+    <text x="920" y="508" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Total Parameters: <tspan fill="#ffffff">105,098</tspan></text>
+    <text x="920" y="528" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Trainable: <tspan fill="#ffffff">105,098</tspan></text>
+    <text x="920" y="548" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Layers: <tspan fill="#ffffff">4</tspan></text>
+    <text x="920" y="568" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Output Shape: <tspan fill="#ffffff">(None, 10)</tspan></text>
+    
+    <!-- Dataset Panel -->
+    <rect x="900" y="590" width="280" height="120" rx="8" fill="#0f0f0f" filter="url(#cardShadow)"/>
+    <text x="920" y="620" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="500">Dataset</text>
+    
+    <rect x="920" y="640" width="240" height="32" rx="6" fill="#052e16" stroke="#16a34a" stroke-width="1"/>
+    <text x="932" y="660" fill="#22c55e" font-family="-apple-system, sans-serif" font-size="14" font-weight="500">MNIST</text>
+    <text x="1148" y="660" fill="#737373" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">60K train, 10K test</text>
+    
+    <text x="920" y="690" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Shape: 28×28×1 → 10 classes</text>
+    <text x="920" y="708" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Type: Grayscale Images</text>
+  </g>
+  
+  <!-- Training Configuration Panel -->
+  <rect x="340" y="580" width="520" height="140" rx="8" fill="#0f0f0f" filter="url(#cardShadow)"/>
+  <text x="360" y="608" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="500">Training Configuration</text>
+  
+  <!-- Config Fields -->
+  <g transform="translate(360, 632)">
+    <!-- Row 1 -->
+    <g>
+      <text y="16" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Epochs</text>
+      <rect y="24" width="80" height="28" rx="4" fill="#000000" stroke="#262626" stroke-width="1"/>
+      <text x="12" y="42" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="13">10</text>
+    </g>
+    
+    <g transform="translate(96, 0)">
+      <text y="16" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Batch Size</text>
+      <rect y="24" width="80" height="28" rx="4" fill="#000000" stroke="#262626" stroke-width="1"/>
+      <text x="12" y="42" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="13">32</text>
+    </g>
+    
+    <g transform="translate(192, 0)">
+      <text y="16" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Learning Rate</text>
+      <rect y="24" width="100" height="28" rx="4" fill="#000000" stroke="#262626" stroke-width="1"/>
+      <text x="12" y="42" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="13">0.001</text>
+    </g>
+    
+    <g transform="translate(308, 0)">
+      <text y="16" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Optimizer</text>
+      <rect y="24" width="120" height="28" rx="4" fill="#000000" stroke="#262626" stroke-width="1"/>
+      <text x="12" y="42" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="13">Adam</text>
+      <text x="104" y="42" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">▼</text>
+    </g>
+    
+    <!-- Row 2 -->
+    <g transform="translate(0, 64)">
+      <text y="16" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Validation Split</text>
+      <rect y="24" width="80" height="28" rx="4" fill="#000000" stroke="#262626" stroke-width="1"/>
+      <text x="12" y="42" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="13">20%</text>
+    </g>
+    
+    <g transform="translate(96, 64)">
+      <text y="16" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">Loss Function</text>
+      <rect y="24" width="240" height="28" rx="4" fill="#000000" stroke="#262626" stroke-width="1"/>
+      <text x="12" y="42" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="13">categorical_crossentropy</text>
+      <text x="224" y="42" fill="#737373" font-family="-apple-system, sans-serif" font-size="12">▼</text>
+    </g>
+  </g>
+</svg>

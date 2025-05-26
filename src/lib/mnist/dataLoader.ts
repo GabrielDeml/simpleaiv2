@@ -180,3 +180,19 @@ export class MnistData {
     return { xs, ys };
   }
 }
+
+// ========== Convenience Function ==========
+/**
+ * Loads MNIST dataset and returns raw arrays for easier integration
+ */
+export async function loadMNIST() {
+  const data = new MnistData();
+  await data.load();
+  
+  return {
+    trainImages: data['trainImages'] as Float32Array,
+    trainLabels: data['trainLabels'] as Uint8Array,
+    testImages: data['testImages'] as Float32Array,
+    testLabels: data['testLabels'] as Uint8Array
+  };
+}
