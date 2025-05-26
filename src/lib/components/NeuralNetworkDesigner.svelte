@@ -278,16 +278,16 @@ print("4. Run the notebook to train your model with GPU acceleration!")
       <DatasetSelector />
     </aside>
     
-    <!-- Central canvas: Visual network editor and training configuration -->
+    <!-- Central canvas: Visual network editor -->
     <main class="canvas-area">
       <NetworkCanvas /> <!-- Drag-and-drop network visualization -->
-      <TrainingConfig /> <!-- Hyperparameter controls -->
     </main>
     
-    <!-- Right panel: Layer properties editor and model summary -->
+    <!-- Right panel: Layer properties editor, model summary, and training configuration -->
     <aside class="right-panel">
       <LayerProperties /> <!-- Edit selected layer parameters -->
       <ModelSummary /> <!-- Display parameter count and shapes -->
+      <TrainingConfig /> <!-- Hyperparameter controls -->
     </aside>
   </div>
   

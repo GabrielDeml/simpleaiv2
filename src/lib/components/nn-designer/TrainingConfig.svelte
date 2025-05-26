@@ -141,7 +141,6 @@
     background: #0f0f0f;
     border-radius: 8px;
     padding: 20px;
-    margin: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
   
@@ -153,7 +152,7 @@
   
   .config-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
   
@@ -174,13 +173,20 @@
   
   input,
   select {
-    height: 28px;
+    height: 32px;
     padding: 0 12px;
     background: #000000;
     border: 1px solid #262626;
     border-radius: 4px;
     color: #ffffff;
     font-size: 13px;
+    transition: border-color 0.2s;
+  }
+  
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: #22c55e;
   }
   
   select {
