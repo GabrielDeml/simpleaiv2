@@ -276,94 +276,299 @@
 <!-- Styles are scoped to this component by default -->
 <!-- They won't affect other components -->
 <style>
+  :global(body) {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
   .mnist-trainer {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .controls {
-    margin: 20px 0;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
     display: flex;
-    gap: 20px;
+    justify-content: space-between;
     align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
   }
 
   .training-params {
     display: flex;
-    gap: 15px;
+    gap: 25px;
   }
 
   label {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
+    color: #5a6c7d;
+    font-weight: 500;
+    font-size: 0.9rem;
   }
 
   input {
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 12px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    min-width: 120px;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #e9ecef;
   }
 
   button {
-    padding: 10px 20px;
-    background-color: #007bff;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35);
+    position: relative;
+    overflow: hidden;
   }
 
-  /* :disabled pseudo-class for disabled state */
+  button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  button:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
   button:disabled {
-    background-color: #6c757d;
+    background: linear-gradient(135deg, #868e96 0%, #495057 100%);
     cursor: not-allowed;
+    box-shadow: none;
   }
 
-  /* :not() pseudo-class to exclude disabled buttons from hover */
   button:hover:not(:disabled) {
-    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35);
   }
 
   .prediction-area {
-    margin: 30px 0;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  .prediction-area h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
   }
 
   canvas {
-    border: 2px solid #333;
+    border: 3px solid #e1e8ed;
+    border-radius: 12px;
     cursor: crosshair;
     display: block;
-    margin: 10px 0;
+    margin: 20px auto;
+    background: #1a1a1a;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  canvas:hover {
+    border-color: #667eea;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
   }
 
   .canvas-controls {
     display: flex;
-    gap: 10px;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .canvas-controls button {
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+
+  .canvas-controls button:first-child {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.35);
+  }
+
+  .canvas-controls button:first-child:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
   }
 
   .status {
-    margin: 20px 0;
-    font-weight: bold;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    text-align: center;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status p {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2c3e50;
+    font-weight: 500;
   }
 
   .logs {
-    margin-top: 30px;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .logs h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
   }
 
   .log-container {
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
+    background: #f8f9fa;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 20px;
+    max-height: 250px;
+    overflow-y: auto;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f8f9fa;
+  }
+
+  .log-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .log-container::-webkit-scrollbar-track {
+    background: #f8f9fa;
     border-radius: 4px;
-    padding: 10px;
-    max-height: 200px;
-    overflow-y: auto; /* Scrollable when content exceeds height */
+  }
+
+  .log-container::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+  }
+
+  .log-container::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
   }
 
   .log-entry {
-    padding: 2px 0;
-    font-family: monospace;
+    padding: 8px 12px;
     font-size: 14px;
+    color: #495057;
+    border-left: 3px solid transparent;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+    opacity: 0;
+    animation: slideIn 0.3s ease forwards;
+  }
+
+  .log-entry:hover {
+    background: #e9ecef;
+    border-left-color: #667eea;
+    border-radius: 4px;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .training-params {
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+    }
+
+    .training-params label {
+      width: 100%;
+    }
+
+    button {
+      width: 100%;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      aspect-ratio: 1;
+    }
   }
 </style>
