@@ -1,6 +1,8 @@
 <script lang="ts">
   import { getAvailableTemplates, loadTemplate } from '$lib/nn-designer/stores';
   import type { ModelTemplate } from '$lib/nn-designer/types';
+  import ConfirmDialog from '../ConfirmDialog.svelte';
+  import { showSuccess } from '$lib/stores/toastStore';
 
   // Get all available templates
   const templates = getAvailableTemplates();
@@ -15,10 +17,26 @@
   }, {} as Record<string, ModelTemplate[]>);
 
   // Handle template selection
+  let selectedTemplate: ModelTemplate | null = null;
+  let showConfirmLoad = false;
+  
   function handleTemplateSelect(template: ModelTemplate) {
-    if (confirm(`Load "${template.name}" template? This will replace your current model.`)) {
-      loadTemplate(template);
+    selectedTemplate = template;
+    showConfirmLoad = true;
+  }
+  
+  function confirmLoad() {
+    if (selectedTemplate) {
+      loadTemplate(selectedTemplate);
+      showSuccess(`Loaded "${selectedTemplate.name}" template successfully!`);
+      showConfirmLoad = false;
+      selectedTemplate = null;
     }
+  }
+  
+  function cancelLoad() {
+    showConfirmLoad = false;
+    selectedTemplate = null;
   }
   
   // Collapsible state
@@ -71,6 +89,18 @@
         </div>
       {/each}
     </div>
+  {/if}
+  
+  {#if showConfirmLoad && selectedTemplate}
+    <ConfirmDialog
+      title="Load Template"
+      message={`Load "${selectedTemplate.name}" template? This will replace your current model.`}
+      confirmText="Load"
+      cancelText="Cancel"
+      type="warning"
+      on:confirm={confirmLoad}
+      on:cancel={cancelLoad}
+    />
   {/if}
 </div>
 

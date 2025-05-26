@@ -16,6 +16,7 @@
   
   import { trainingConfig, layers, selectedDataset } from '$lib/nn-designer/stores';
   import { colabExporter } from '$lib/nn-designer/colabExporter';
+  import { showError } from '$lib/stores/toastStore';
 
   /**
    * Exports the current model configuration to a Google Colab notebook.
@@ -43,7 +44,7 @@
       URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error('Failed to export to Colab:', error);
-      alert('Failed to export notebook. Please check your model configuration.');
+      showError('Failed to export notebook. Please check your model configuration.');
     }
   }
 </script>

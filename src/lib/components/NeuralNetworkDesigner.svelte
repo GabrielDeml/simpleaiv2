@@ -13,9 +13,17 @@
   import { isTraining, layers, resetTraining } from '$lib/nn-designer/stores';
   import { trainingManager } from '$lib/nn-designer/trainingManager';
   import { modelBuilder } from '$lib/nn-designer/modelBuilder';
+  import { showSuccess, showError } from '$lib/stores/toastStore';
+  import ConfirmDialog from './ConfirmDialog.svelte';
+  import InstructionModal from './InstructionModal.svelte';
+  import ToastContainer from './ToastContainer.svelte';
   
   // Control visibility of training progress modal
   let showTrainingProgress = false;
+  
+  // Control visibility of dialogs
+  let showClearConfirm = false;
+  let showColabInstructions = false;
   
   // Start or stop training the neural network model
   async function handleRunStop() {
@@ -26,7 +34,7 @@
         showTrainingProgress = true; // Show progress modal
         await trainingManager.startTraining(); // Delegate to training manager
       } catch (error) {
-        alert(`Training failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        showError(`Training failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         showTrainingProgress = false; // Hide modal on error
       }
     }
@@ -39,7 +47,7 @@
       timestamp: new Date().toISOString() // Add timestamp for versioning
     };
     localStorage.setItem('nn-designer-model', JSON.stringify(modelData));
-    alert('Model saved to browser storage!');
+    showSuccess('Model saved to browser storage!');
   }
   
   // Control visibility of export dropdown
@@ -57,9 +65,9 @@
   async function handleExport() {
     try {
       await modelBuilder.exportModel(); // Export as TensorFlow.js format
-      alert('Model exported successfully!');
+      showSuccess('Model exported successfully!');
     } catch (error) {
-      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showError(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -182,36 +190,29 @@ print("4. Run the notebook to train your model with GPU acceleration!")
     
     URL.revokeObjectURL(url);
     
-    // Show instructions
-    alert(`Colab export complete! 
-
-Instructions:
-1. Go to https://colab.research.google.com/
-2. Click "Upload" and select the downloaded .py file
-3. Follow the comments in the code to:
-   - Load your dataset
-   - Train your model with GPU acceleration
-   - Evaluate performance
-
-The exported file contains your complete model architecture and training setup.`);
-    
+    // Show instructions modal
+    showColabInstructions = true;
     showExportDropdown = false;
   }
   
   // Clear current model and reset to default state
   function handleClear() {
-    if (confirm('Are you sure you want to clear the model?')) {
-      // Reset to single input layer with MNIST dimensions
-      layers.set([
-        {
-          id: 'input-1',
-          type: 'input',
-          name: 'Input Layer',
-          params: { shape: [28, 28] } // Default MNIST input shape
-        }
-      ]);
-      resetTraining(); // Clear training history and metrics
-    }
+    showClearConfirm = true;
+  }
+  
+  function confirmClear() {
+    // Reset to single input layer with MNIST dimensions
+    layers.set([
+      {
+        id: 'input-1',
+        type: 'input',
+        name: 'Input Layer',
+        params: { shape: [28, 28] } // Default MNIST input shape
+      }
+    ]);
+    resetTraining(); // Clear training history and metrics
+    showClearConfirm = false;
+    showSuccess('Model cleared successfully!');
   }
 </script>
 
@@ -294,7 +295,38 @@ The exported file contains your complete model architecture and training setup.`
   {#if showTrainingProgress}
     <TrainingProgress on:close={() => showTrainingProgress = false} />
   {/if}
+  
+  <!-- Confirmation dialogs -->
+  {#if showClearConfirm}
+    <ConfirmDialog
+      title="Clear Model"
+      message="Are you sure you want to clear the model? This will remove all layers and reset to default."
+      confirmText="Clear"
+      cancelText="Cancel"
+      type="danger"
+      on:confirm={confirmClear}
+      on:cancel={() => showClearConfirm = false}
+    />
+  {/if}
+  
+  <!-- Colab instructions modal -->
+  {#if showColabInstructions}
+    <InstructionModal
+      title="Colab Export Complete!"
+      instructions={[
+        "Go to https://colab.research.google.com/",
+        "Click 'Upload' and select the downloaded .py file",
+        "Load your dataset (or use built-in datasets like MNIST)",
+        "Train your model with GPU acceleration",
+        "Evaluate performance and visualize results"
+      ]}
+      on:close={() => showColabInstructions = false}
+    />
+  {/if}
 </div>
+
+<!-- Toast notifications -->
+<ToastContainer />
 
 <style>
   .designer-container {
