@@ -25,6 +25,15 @@ export class ModelBuilder {
    * @returns The compiled TensorFlow.js Sequential model
    */
   buildModel(layerConfigs: LayerConfig[]): tf.Sequential {
+    // Validate input
+    if (!layerConfigs || layerConfigs.length === 0) {
+      throw new Error('No layers defined');
+    }
+
+    if (layerConfigs[0].type !== 'input') {
+      throw new Error('First layer must be an input layer');
+    }
+
     if (this.model) {
       this.model.dispose();
     }
@@ -107,6 +116,9 @@ export class ModelBuilder {
             inputShape: isFirstLayer ? inputShape : undefined
           }));
           break;
+
+        default:
+          throw new Error(`Unknown layer type: ${layer.type}`);
       }
     }
 
