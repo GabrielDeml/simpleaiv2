@@ -234,6 +234,10 @@ export class MnistData {
    *   - batch_size: Number of examples
    *   - num_classes: 10 (one-hot encoded)
    * 
+   * Note: This method creates tensors that must be disposed by the caller
+   * to prevent memory leaks. The tensors are not wrapped in tf.tidy()
+   * because they need to be returned and used outside this function.
+   * 
    * @param images - Flattened image data (each image is 784 consecutive floats)
    * @param labels - One-hot encoded labels (each label is 10 consecutive bytes)
    * @param numExamples - Optional subset size

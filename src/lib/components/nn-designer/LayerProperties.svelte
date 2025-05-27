@@ -17,6 +17,8 @@
   import { layers, selectedLayerId, updateLayer } from '$lib/nn-designer/stores';
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
   import { parameterHelp } from '$lib/nn-designer/parameterHelp';
+  import { validateLayer, sanitizeParameterValue, getParameterDescription } from '$lib/nn-designer/parameterValidation';
+  import type { LayerValidationResult } from '$lib/nn-designer/parameterValidation';
   import Tooltip from '$lib/components/Tooltip.svelte';
   
   // Reactive: Find the currently selected layer from the layers array
@@ -31,17 +33,23 @@
   // Special handling for input layer shape (comma-separated string)
   let shapeString = '';
   
+  // Validation state
+  let validationResult: LayerValidationResult = { isValid: true, parameterErrors: {} };
+  
   /**
    * Reactive statement to update local edit state when selection changes
    * - Copies current parameters to local state
    * - Converts shape array to string for input layers
    * - Ensures UI always reflects current selection
+   * - Validates the current parameters
    */
   $: if (selectedLayer) {
     editedParams = { ...selectedLayer.params };
     if (selectedLayer.type === 'input' && Array.isArray(selectedLayer.params.shape)) {
       shapeString = selectedLayer.params.shape.join(', ');
     }
+    // Validate on selection change
+    validateCurrentLayer();
   }
   
   /**
@@ -49,6 +57,7 @@
    * - Special handling for input shape (string to array conversion)
    * - Updates the global store with new parameters
    * - Validates and filters shape values to ensure they're numbers
+   * - Only applies if validation passes
    */
   function handleApply() {
     if (selectedLayer) {
@@ -57,7 +66,12 @@
         const shape = shapeString.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
         editedParams = { ...editedParams, shape };
       }
-      updateLayer(selectedLayer.id, editedParams);
+      
+      // Validate before applying
+      validateCurrentLayer();
+      if (validationResult.isValid) {
+        updateLayer(selectedLayer.id, editedParams);
+      }
     }
   }
   
@@ -72,6 +86,28 @@
       if (selectedLayer.type === 'input' && Array.isArray(selectedLayer.params.shape)) {
         shapeString = selectedLayer.params.shape.join(', ');
       }
+      // Reset validation state
+      validateCurrentLayer();
+    }
+  }
+  
+  /**
+   * Validates the current layer parameters
+   */
+  function validateCurrentLayer() {
+    if (selectedLayer) {
+      validationResult = validateLayer(selectedLayer.type, editedParams);
+    }
+  }
+  
+  /**
+   * Handles parameter change with validation
+   */
+  function handleParameterChange(paramName: string, value: any) {
+    if (selectedLayer) {
+      const sanitized = sanitizeParameterValue(selectedLayer.type, paramName, value);
+      editedParams[paramName] = sanitized;
+      validateCurrentLayer();
     }
   }
 </script>
@@ -129,10 +165,16 @@
           <input
             type="number"
             bind:value={editedParams.units}
+            on:input={() => handleParameterChange('units', editedParams.units)}
             min="1"
             max="10000"
+            class:error={validationResult.parameterErrors.units}
           />
-          <span class="help-text">{parameterHelp.units.example}</span>
+          {#if validationResult.parameterErrors.units}
+            <span class="error-text">{validationResult.parameterErrors.units[0]}</span>
+          {:else}
+            <span class="help-text">{parameterHelp.units.example}</span>
+          {/if}
         </div>
         
         <!-- Activation function selection -->
@@ -298,17 +340,29 @@
           <input
             type="number"
             bind:value={editedParams.rate}
+            on:input={() => handleParameterChange('rate', editedParams.rate)}
             min="0"
             max="1"
             step="0.1"
+            class:error={validationResult.parameterErrors.rate}
           />
-          <span class="help-text">{parameterHelp.rate.example}</span>
+          {#if validationResult.parameterErrors.rate}
+            <span class="error-text">{validationResult.parameterErrors.rate[0]}</span>
+          {:else}
+            <span class="help-text">{parameterHelp.rate.example}</span>
+          {/if}
         </div>
       {/if}
       
       <!-- Action buttons -->
       <div class="form-actions">
-        <button class="btn btn-primary" on:click={handleApply}>Apply</button>
+        <button 
+          class="btn btn-primary" 
+          on:click={handleApply}
+          disabled={!validationResult.isValid}
+        >
+          Apply
+        </button>
         <button class="btn btn-secondary" on:click={handleCancel}>Cancel</button>
       </div>
     </div>
@@ -475,5 +529,25 @@
   
   .btn-secondary:hover {
     background: #262626;
+  }
+  
+  input.error {
+    border-color: #ef4444;
+  }
+  
+  .error-text {
+    font-size: 11px;
+    color: #ef4444;
+    margin-top: 4px;
+  }
+  
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
   }
 </style>

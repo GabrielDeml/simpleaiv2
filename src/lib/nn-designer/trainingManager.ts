@@ -2,9 +2,8 @@ import * as tf from '@tensorflow/tfjs';
 import { get } from 'svelte/store';
 import { layers, trainingConfig, selectedDataset, isTraining } from './stores';
 import { modelBuilder } from './modelBuilder';
-import { loadMNIST } from '../mnist/dataLoader';
-import { loadCIFAR10 } from '../datasets/cifar10';
-import { loadFashionMNIST } from '../datasets/fashionMnist';
+import { getDataset } from '../datasets';
+import type { DatasetTensors } from '../datasets';
 
 /**
  * TrainingManager orchestrates the entire training pipeline:
@@ -12,104 +11,33 @@ import { loadFashionMNIST } from '../datasets/fashionMnist';
  * Manages the lifecycle of training data tensors.
  */
 export class TrainingManager {
-  /** Training input data tensor */
-  private trainData: tf.Tensor | null = null;
-  /** Training labels tensor (one-hot encoded) */
-  private trainLabels: tf.Tensor | null = null;
-  /** Test/validation input data tensor */
-  private testData: tf.Tensor | null = null;
-  /** Test/validation labels tensor (one-hot encoded) */
-  private testLabels: tf.Tensor | null = null;
+  /** Dataset tensors for training and testing */
+  private datasetTensors: DatasetTensors | null = null;
 
   /**
    * Loads the currently selected dataset into memory as TensorFlow.js tensors.
-   * Handles different dataset formats and converts them to the required shapes.
+   * Uses the standardized dataset interface for consistent loading.
    * Disposes of any previously loaded data to prevent memory leaks.
    */
   async loadDataset() {
-    const dataset = get(selectedDataset);
-    
-    switch (dataset) {
-      case 'mnist':
-        const mnistData = await loadMNIST();
-        
-        // Prepare training data - reshape flat array to 4D tensor [batch, height, width, channels]
-        this.trainData = tf.tensor4d(
-          mnistData.trainImages,
-          [mnistData.trainImages.length / (28 * 28), 28, 28, 1]
-        );
-        
-        // Labels are already one-hot encoded from the dataset loader
-        // Shape: [samples, 10] where 10 is the number of classes
-        this.trainLabels = tf.tensor2d(
-          mnistData.trainLabels,
-          [mnistData.trainLabels.length / 10, 10]
-        );
-        
-        // Prepare test data
-        this.testData = tf.tensor4d(
-          mnistData.testImages,
-          [mnistData.testImages.length / (28 * 28), 28, 28, 1]
-        );
-        
-        // Labels are already one-hot encoded from the dataset
-        this.testLabels = tf.tensor2d(
-          mnistData.testLabels,
-          [mnistData.testLabels.length / 10, 10]
-        );
-        break;
-        
-      case 'cifar10':
-        const cifar10Data = await loadCIFAR10();
-        
-        this.trainData = tf.tensor4d(
-          cifar10Data.trainImages,
-          [cifar10Data.trainImages.length / (32 * 32 * 3), 32, 32, 3]
-        );
-        
-        this.trainLabels = tf.tensor2d(
-          cifar10Data.trainLabels,
-          [cifar10Data.trainLabels.length / 10, 10]
-        );
-        
-        this.testData = tf.tensor4d(
-          cifar10Data.testImages,
-          [cifar10Data.testImages.length / (32 * 32 * 3), 32, 32, 3]
-        );
-        
-        this.testLabels = tf.tensor2d(
-          cifar10Data.testLabels,
-          [cifar10Data.testLabels.length / 10, 10]
-        );
-        break;
-        
-      case 'fashion-mnist':
-        const fashionData = await loadFashionMNIST();
-        
-        this.trainData = tf.tensor4d(
-          fashionData.trainImages,
-          [fashionData.trainImages.length / (28 * 28), 28, 28, 1]
-        );
-        
-        this.trainLabels = tf.tensor2d(
-          fashionData.trainLabels,
-          [fashionData.trainLabels.length / 10, 10]
-        );
-        
-        this.testData = tf.tensor4d(
-          fashionData.testImages,
-          [fashionData.testImages.length / (28 * 28), 28, 28, 1]
-        );
-        
-        this.testLabels = tf.tensor2d(
-          fashionData.testLabels,
-          [fashionData.testLabels.length / 10, 10]
-        );
-        break;
-        
-      default:
-        throw new Error(`Unknown dataset: ${dataset}`);
+    // Dispose of any previously loaded data
+    if (this.datasetTensors) {
+      this.datasetTensors.trainData.dispose();
+      this.datasetTensors.trainLabels.dispose();
+      this.datasetTensors.testData.dispose();
+      this.datasetTensors.testLabels.dispose();
+      this.datasetTensors = null;
     }
+    
+    // Get the selected dataset name
+    const datasetName = get(selectedDataset);
+    
+    // Load dataset using the standardized interface
+    const dataset = getDataset(datasetName);
+    this.datasetTensors = await dataset.loadTensors({
+      shuffle: true,
+      cache: true
+    });
   }
 
   /**
@@ -148,7 +76,7 @@ export class TrainingManager {
       }
       
       // Ensure we have data loaded before training
-      if (!this.trainData || !this.trainLabels) {
+      if (!this.datasetTensors) {
         await this.loadDataset();
       }
       
@@ -162,8 +90,8 @@ export class TrainingManager {
       
       // Train the model with epoch callbacks for progress tracking
       await modelBuilder.trainModel(
-        this.trainData!,
-        this.trainLabels!,
+        this.datasetTensors!.trainData,
+        this.datasetTensors!.trainLabels,
         config,
         (epoch, logs) => {
           // Log training progress to console
@@ -172,16 +100,22 @@ export class TrainingManager {
       );
       
       // Evaluate final model performance on test set
-      if (this.testData && this.testLabels) {
-        const evaluation = model.evaluate(this.testData, this.testLabels) as tf.Tensor[];
+      if (this.datasetTensors!.testData && this.datasetTensors!.testLabels) {
+        // Evaluate and clean up tensors properly
+        const evaluation = model.evaluate(
+          this.datasetTensors!.testData,
+          this.datasetTensors!.testLabels
+        ) as tf.Tensor[];
+        
+        // Extract data from tensors
         const testLoss = await evaluation[0].data();
         const testAccuracy = await evaluation[1].data();
         
+        // Dispose evaluation tensors to prevent memory leaks
+        evaluation.forEach(t => t.dispose());
+        
         console.log(`Test Loss: ${testLoss[0].toFixed(4)}`);
         console.log(`Test Accuracy: ${(testAccuracy[0] * 100).toFixed(2)}%`);
-        
-        // Clean up evaluation tensors to free memory
-        evaluation.forEach(t => t.dispose());
       }
       
     } catch (error) {
@@ -211,25 +145,34 @@ export class TrainingManager {
       throw new Error('No trained model available');
     }
 
-    let input: tf.Tensor;
-    if (inputData instanceof Float32Array) {
-      // Assume it's a flattened 28x28 grayscale image for MNIST
-      // Reshape to 4D tensor with batch dimension
-      input = tf.tensor4d(inputData, [1, 28, 28, 1]);
-    } else {
-      input = inputData;
-    }
-
-    const prediction = model.predict(input) as tf.Tensor;
-    const result = await prediction.data();
+    let input: tf.Tensor | null = null;
+    let prediction: tf.Tensor | null = null;
     
-    // Clean up tensors to prevent memory leaks
-    if (inputData instanceof Float32Array) {
-      input.dispose();
-    }
-    prediction.dispose();
+    try {
+      // Create input tensor if needed
+      if (inputData instanceof Float32Array) {
+        // Assume it's a flattened 28x28 grayscale image for MNIST
+        // Reshape to 4D tensor with batch dimension
+        input = tf.tensor4d(inputData, [1, 28, 28, 1]);
+      } else {
+        input = inputData;
+      }
 
-    return Array.from(result);
+      // Run prediction
+      prediction = model.predict(input) as tf.Tensor;
+      const result = await prediction.data();
+      
+      return Array.from(result);
+    } finally {
+      // Clean up tensors to prevent memory leaks
+      // Only dispose input if we created it (not if it was passed in)
+      if (inputData instanceof Float32Array && input) {
+        input.dispose();
+      }
+      if (prediction) {
+        prediction.dispose();
+      }
+    }
   }
 
   /**
@@ -237,10 +180,13 @@ export class TrainingManager {
    * Should be called when switching datasets or cleaning up.
    */
   dispose() {
-    if (this.trainData) this.trainData.dispose();
-    if (this.trainLabels) this.trainLabels.dispose();
-    if (this.testData) this.testData.dispose();
-    if (this.testLabels) this.testLabels.dispose();
+    if (this.datasetTensors) {
+      this.datasetTensors.trainData.dispose();
+      this.datasetTensors.trainLabels.dispose();
+      this.datasetTensors.testData.dispose();
+      this.datasetTensors.testLabels.dispose();
+      this.datasetTensors = null;
+    }
     modelBuilder.dispose();
   }
 }

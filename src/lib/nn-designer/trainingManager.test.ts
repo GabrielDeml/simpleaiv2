@@ -1,39 +1,71 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TrainingManager } from './trainingManager';
 import { selectedDataset, layers } from './stores';
-import * as tf from '@tensorflow/tfjs';
 
 // Mock dependencies
 vi.mock('@tensorflow/tfjs', () => ({
   tensor2d: vi.fn(() => ({ dispose: vi.fn() })),
   tensor4d: vi.fn(() => ({ dispose: vi.fn() })),
-  dispose: vi.fn()
+  dispose: vi.fn(),
+  tidy: vi.fn((fn) => fn()),
+  keep: vi.fn((tensor) => tensor)
 }));
 
+// Mock the new dataset interface
+vi.mock('../datasets', () => ({
+  getDataset: vi.fn(() => {
+    const mockTensor = { dispose: vi.fn() };
+    return {
+      loadTensors: vi.fn(() => Promise.resolve({
+        trainData: mockTensor,
+        trainLabels: mockTensor,
+        testData: mockTensor,
+        testLabels: mockTensor
+      }))
+    };
+  })
+}));
+
+// Mock the legacy loaders that the new datasets use internally
 vi.mock('../mnist/dataLoader', () => ({
-  loadMNIST: vi.fn(() => Promise.resolve({
-    trainImages: new Float32Array(60000 * 28 * 28),
-    trainLabels: new Float32Array(60000 * 10),
-    testImages: new Float32Array(10000 * 28 * 28),
-    testLabels: new Float32Array(10000 * 10)
+  MnistData: vi.fn().mockImplementation(() => ({
+    load: vi.fn(),
+    getTrainData: vi.fn(() => ({
+      xs: { data: () => Promise.resolve(new Float32Array(60000 * 28 * 28)), dispose: vi.fn() },
+      ys: { data: () => Promise.resolve(new Float32Array(60000 * 10)), dispose: vi.fn() }
+    })),
+    getTestData: vi.fn(() => ({
+      xs: { data: () => Promise.resolve(new Float32Array(10000 * 28 * 28)), dispose: vi.fn() },
+      ys: { data: () => Promise.resolve(new Float32Array(10000 * 10)), dispose: vi.fn() }
+    }))
   }))
 }));
 
 vi.mock('../datasets/cifar10', () => ({
-  loadCIFAR10: vi.fn(() => Promise.resolve({
-    trainImages: new Float32Array(50000 * 32 * 32 * 3),
-    trainLabels: new Float32Array(50000 * 10),
-    testImages: new Float32Array(10000 * 32 * 32 * 3),
-    testLabels: new Float32Array(10000 * 10)
+  Cifar10Data: vi.fn().mockImplementation(() => ({
+    load: vi.fn(),
+    getTrainData: vi.fn(() => ({
+      xs: { data: () => Promise.resolve(new Float32Array(50000 * 32 * 32 * 3)), dispose: vi.fn() },
+      ys: { data: () => Promise.resolve(new Float32Array(50000 * 10)), dispose: vi.fn() }
+    })),
+    getTestData: vi.fn(() => ({
+      xs: { data: () => Promise.resolve(new Float32Array(10000 * 32 * 32 * 3)), dispose: vi.fn() },
+      ys: { data: () => Promise.resolve(new Float32Array(10000 * 10)), dispose: vi.fn() }
+    }))
   }))
 }));
 
 vi.mock('../datasets/fashionMnist', () => ({
-  loadFashionMNIST: vi.fn(() => Promise.resolve({
-    trainImages: new Float32Array(60000 * 28 * 28),
-    trainLabels: new Float32Array(60000 * 10),
-    testImages: new Float32Array(10000 * 28 * 28),
-    testLabels: new Float32Array(10000 * 10)
+  FashionMnistData: vi.fn().mockImplementation(() => ({
+    load: vi.fn(),
+    getTrainData: vi.fn(() => ({
+      xs: { data: () => Promise.resolve(new Float32Array(60000 * 28 * 28)), dispose: vi.fn() },
+      ys: { data: () => Promise.resolve(new Float32Array(60000 * 10)), dispose: vi.fn() }
+    })),
+    getTestData: vi.fn(() => ({
+      xs: { data: () => Promise.resolve(new Float32Array(10000 * 28 * 28)), dispose: vi.fn() },
+      ys: { data: () => Promise.resolve(new Float32Array(10000 * 10)), dispose: vi.fn() }
+    }))
   }))
 }));
 
@@ -62,37 +94,65 @@ vi.mock('./modelBuilder', () => ({
 describe('TrainingManager', () => {
   let trainingManager: TrainingManager;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     trainingManager = new TrainingManager();
     vi.clearAllMocks();
+    
+    // Reset the getDataset mock to its default implementation
+    const { getDataset } = await import('../datasets');
+    (getDataset as any).mockImplementation(() => {
+      const mockTensor = { dispose: vi.fn() };
+      return {
+        loadTensors: vi.fn(() => Promise.resolve({
+          trainData: mockTensor,
+          trainLabels: mockTensor,
+          testData: mockTensor,
+          testLabels: mockTensor
+        }))
+      };
+    });
   });
 
   describe('loadDataset', () => {
     it('loads MNIST dataset', async () => {
+      const { getDataset } = await import('../datasets');
       selectedDataset.set('mnist');
       await trainingManager.loadDataset();
 
-      expect(tf.tensor4d).toHaveBeenCalledTimes(2); // train and test data
-      expect(tf.tensor2d).toHaveBeenCalledTimes(2); // train and test labels
+      expect(getDataset).toHaveBeenCalledWith('mnist');
     });
 
     it('loads CIFAR-10 dataset', async () => {
+      const { getDataset } = await import('../datasets');
       selectedDataset.set('cifar10');
       await trainingManager.loadDataset();
 
-      expect(tf.tensor4d).toHaveBeenCalledTimes(2);
-      expect(tf.tensor2d).toHaveBeenCalledTimes(2);
+      expect(getDataset).toHaveBeenCalledWith('cifar10');
     });
 
     it('loads Fashion-MNIST dataset', async () => {
+      const { getDataset } = await import('../datasets');
       selectedDataset.set('fashion-mnist');
       await trainingManager.loadDataset();
 
-      expect(tf.tensor4d).toHaveBeenCalledTimes(2);
-      expect(tf.tensor2d).toHaveBeenCalledTimes(2);
+      expect(getDataset).toHaveBeenCalledWith('fashion-mnist');
     });
 
     it('disposes previous data before loading new dataset', async () => {
+      const mockDispose = vi.fn();
+      const mockTensor = { dispose: mockDispose };
+      
+      // Override getDataset to return tensors with dispose methods
+      const { getDataset } = await import('../datasets');
+      (getDataset as any).mockImplementation(() => ({
+        loadTensors: vi.fn(() => Promise.resolve({
+          trainData: mockTensor,
+          trainLabels: mockTensor,
+          testData: mockTensor,
+          testLabels: mockTensor
+        }))
+      }));
+      
       selectedDataset.set('mnist');
       await trainingManager.loadDataset();
       
@@ -100,11 +160,16 @@ describe('TrainingManager', () => {
       selectedDataset.set('cifar10');
       await trainingManager.loadDataset();
 
-      // Just check that it doesn't throw
-      expect(true).toBe(true);
+      // Should have disposed 4 tensors from first load
+      expect(mockDispose).toHaveBeenCalledTimes(4);
     });
 
     it('throws error for unknown dataset', async () => {
+      const { getDataset } = await import('../datasets');
+      (getDataset as any).mockImplementation(() => {
+        throw new Error('Unknown dataset: unknown');
+      });
+      
       selectedDataset.set('unknown' as any);
       await expect(trainingManager.loadDataset()).rejects.toThrow('Unknown dataset: unknown');
     });
@@ -125,6 +190,17 @@ describe('TrainingManager', () => {
       selectedDataset.set('mnist');
       const loadDatasetSpy = vi.spyOn(trainingManager, 'loadDataset');
       
+      // Mock model evaluation to return proper tensors
+      const { modelBuilder } = await import('./modelBuilder');
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      (modelBuilder.buildModel as any).mockReturnValue(mockModel);
+      
       try {
         await trainingManager.startTraining();
       } catch (e) {
@@ -138,11 +214,17 @@ describe('TrainingManager', () => {
       selectedDataset.set('mnist');
       const { modelBuilder } = await import('./modelBuilder');
       
-      try {
-        await trainingManager.startTraining();
-      } catch (e) {
-        // Expected to fail due to mock limitations
-      }
+      // Mock model evaluation to return proper tensors
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      (modelBuilder.buildModel as any).mockReturnValue(mockModel);
+      
+      await trainingManager.startTraining();
       
       expect(modelBuilder.buildModel).toHaveBeenCalled();
       expect(modelBuilder.compileModel).toHaveBeenCalled();
@@ -152,11 +234,17 @@ describe('TrainingManager', () => {
       selectedDataset.set('mnist');
       const { modelBuilder } = await import('./modelBuilder');
       
-      try {
-        await trainingManager.startTraining();
-      } catch (e) {
-        // Expected to fail due to mock limitations
-      }
+      // Mock model evaluation to return proper tensors
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      (modelBuilder.buildModel as any).mockReturnValue(mockModel);
+      
+      await trainingManager.startTraining();
       
       expect(modelBuilder.trainModel).toHaveBeenCalled();
     });
@@ -165,14 +253,20 @@ describe('TrainingManager', () => {
       selectedDataset.set('mnist');
       const { modelBuilder } = await import('./modelBuilder');
       
+      // Mock model evaluation to return proper tensors
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      (modelBuilder.buildModel as any).mockReturnValue(mockModel);
+      
       // Ensure trainModel resolves successfully
       (modelBuilder.trainModel as any).mockResolvedValue({ history: {} });
       
-      try {
-        await trainingManager.startTraining();
-      } catch (e) {
-        // If there's an error, check that model building was attempted
-      }
+      await trainingManager.startTraining();
       
       // The training should be called when model is built successfully
       expect(modelBuilder.trainModel).toHaveBeenCalled();
@@ -181,10 +275,21 @@ describe('TrainingManager', () => {
     it('handles epoch end callback', async () => {
       selectedDataset.set('mnist');
       const { modelBuilder } = await import('./modelBuilder');
-      const onEpochEnd = vi.fn();
+      
+      // Mock model evaluation to return proper tensors
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      (modelBuilder.buildModel as any).mockReturnValue(mockModel);
       
       // Mock trainModel to call the callback
+      let capturedCallback: any;
       (modelBuilder.trainModel as any).mockImplementation(async (_data: any, _labels: any, _config: any, callback: any) => {
+        capturedCallback = callback;
         // Simulate epoch end callback
         if (callback) {
           callback(0, { loss: 0.5, acc: 0.8 });
@@ -192,18 +297,12 @@ describe('TrainingManager', () => {
         return { history: {} };
       });
       
-      try {
-        await trainingManager.startTraining();
-      } catch (e) {
-        // Check if our mock was called even if there was an error
-      }
+      await trainingManager.startTraining();
       
       // Verify that trainModel was called with a callback
       expect(modelBuilder.trainModel).toHaveBeenCalled();
-      // And that callback should have triggered our onEpochEnd
-      if (onEpochEnd.mock.calls.length > 0) {
-        expect(onEpochEnd).toHaveBeenCalledWith(0, { loss: 0.5, acc: 0.8 });
-      }
+      // Verify the callback was captured and called
+      expect(capturedCallback).toBeDefined();
     });
   });
 
@@ -222,8 +321,17 @@ describe('TrainingManager', () => {
     it('disposes all tensors and model builder', async () => {
       const mockDispose = vi.fn();
       const mockTensor = { dispose: mockDispose };
-      (tf.tensor4d as any).mockReturnValue(mockTensor);
-      (tf.tensor2d as any).mockReturnValue(mockTensor);
+      
+      // Override getDataset to return tensors with dispose methods
+      const { getDataset } = await import('../datasets');
+      (getDataset as any).mockImplementation(() => ({
+        loadTensors: vi.fn(() => Promise.resolve({
+          trainData: mockTensor,
+          trainLabels: mockTensor,
+          testData: mockTensor,
+          testLabels: mockTensor
+        }))
+      }));
 
       selectedDataset.set('mnist');
       await trainingManager.loadDataset();
