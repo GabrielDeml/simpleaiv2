@@ -161,21 +161,20 @@ describe('TrainingManager', () => {
       expect(modelBuilder.trainModel).toHaveBeenCalled();
     });
 
-    it('handles training completion callback', async () => {
+    it('handles training completion', async () => {
       selectedDataset.set('mnist');
-      const onComplete = vi.fn();
       const { modelBuilder } = await import('./modelBuilder');
       
       // Ensure trainModel resolves successfully
       (modelBuilder.trainModel as any).mockResolvedValue({ history: {} });
       
       try {
-        await trainingManager.startTraining(onComplete);
+        await trainingManager.startTraining();
       } catch (e) {
-        // If there's an error, the callback might not be called
+        // If there's an error, check that model building was attempted
       }
       
-      // The callback should be called when training completes successfully
+      // The training should be called when model is built successfully
       expect(modelBuilder.trainModel).toHaveBeenCalled();
     });
 
@@ -194,7 +193,7 @@ describe('TrainingManager', () => {
       });
       
       try {
-        await trainingManager.startTraining(undefined, onEpochEnd);
+        await trainingManager.startTraining();
       } catch (e) {
         // Check if our mock was called even if there was an error
       }

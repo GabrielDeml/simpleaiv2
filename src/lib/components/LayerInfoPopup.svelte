@@ -22,16 +22,24 @@
 </script>
 
 {#if isOpen && layerDef}
-  <div class="popup-backdrop" on:click={handleBackdropClick}>
+  <div 
+    class="popup-backdrop" 
+    on:click={handleBackdropClick}
+    on:keydown={(e) => e.key === 'Escape' && close()}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="popup-title"
+    tabindex="-1"
+  >
     <div class="popup-content">
       <div class="popup-header" style="background: linear-gradient(135deg, {layerDef.color}22, {layerDef.color}11)">
         <div class="header-left">
           <div class="layer-icon" style="background: {layerDef.color}22; color: {layerDef.color}">
             {layerDef.icon}
           </div>
-          <h2>{layerDef.displayName}</h2>
+          <h2 id="popup-title">{layerDef.displayName}</h2>
         </div>
-        <button class="close-button" on:click={close}>
+        <button class="close-button" on:click={close} aria-label="Close dialog">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M5 5L15 15M5 15L15 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>

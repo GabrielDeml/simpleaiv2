@@ -25,6 +25,7 @@
   bind:this={triggerElement}
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
+  role="group"
 >
   <slot />
   {#if showTooltip && content}

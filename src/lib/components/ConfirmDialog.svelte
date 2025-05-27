@@ -24,10 +24,18 @@
   }
 </script>
 
-<div class="modal-backdrop" on:click={handleBackdropClick}>
+<div 
+  class="modal-backdrop" 
+  on:click={handleBackdropClick}
+  on:keydown={(e) => e.key === 'Escape' && handleCancel()}
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="dialog-title"
+  tabindex="-1"
+>
   <div class="confirm-dialog {type}">
     <div class="dialog-header">
-      <h3 class="dialog-title">{title}</h3>
+      <h3 id="dialog-title" class="dialog-title">{title}</h3>
     </div>
     
     <div class="dialog-body">

@@ -23,14 +23,22 @@
 </script>
 
 {#if isOpen}
-  <div class="modal-backdrop" on:click={close}>
-    <div class="modal" on:click|stopPropagation>
+  <div 
+    class="modal-backdrop" 
+    on:click={close}
+    on:keydown={(e) => e.key === 'Escape' && close()}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="help-modal-title"
+    tabindex="-1"
+  >
+    <div class="modal">
       <div class="modal-header">
         <div class="header-content">
-          <h2>Neural Network Designer Help</h2>
+          <h2 id="help-modal-title">Neural Network Designer Help</h2>
           <p class="subtitle">Everything you need to build and train neural networks</p>
         </div>
-        <button class="close-button" on:click={close}>
+        <button class="close-button" on:click={close} aria-label="Close help">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>

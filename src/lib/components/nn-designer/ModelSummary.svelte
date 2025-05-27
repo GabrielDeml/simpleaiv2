@@ -49,7 +49,7 @@
           totalParams,
           trainableParams: totalParams, // All params are trainable in our case
           layerCount: $layers.length,
-          outputShape: outputShape.slice(1) // Remove batch dimension (first dim)
+          outputShape: outputShape.slice(1).filter((n): n is number => n !== null) // Remove batch dimension (first dim)
         };
         
         // Clean up to prevent memory leaks

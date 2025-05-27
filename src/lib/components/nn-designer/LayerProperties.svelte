@@ -26,7 +26,7 @@
   $: layerDef = selectedLayer ? layerDefinitions[selectedLayer.type] : null;
   
   // Local state for edited parameters (allows cancel without saving)
-  let editedParams = {};
+  let editedParams: Record<string, any> = {};
   
   // Special handling for input layer shape (comma-separated string)
   let shapeString = '';
@@ -55,7 +55,7 @@
       // Convert shape string back to array for input layers
       if (selectedLayer.type === 'input' && shapeString) {
         const shape = shapeString.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-        editedParams.shape = shape;
+        editedParams = { ...editedParams, shape };
       }
       updateLayer(selectedLayer.id, editedParams);
     }
@@ -154,14 +154,14 @@
             <option value="softmax">Softmax</option>
             <option value="linear">Linear</option>
           </select>
-          {#if editedParams.activation && parameterHelp.activation.options[editedParams.activation]}
-            <span class="help-text">{parameterHelp.activation.options[editedParams.activation]}</span>
+          {#if editedParams.activation && editedParams.activation in parameterHelp.activation.options}
+            <span class="help-text">{parameterHelp.activation.options[editedParams.activation as keyof typeof parameterHelp.activation.options]}</span>
           {/if}
         </div>
         
         <!-- Bias toggle with custom switch UI -->
         <div class="form-group">
-          <label>Use Bias</label>
+          <label for="use-bias">Use Bias</label>
           <div class="toggle-switch">
             <input
               type="checkbox"
@@ -174,8 +174,8 @@
         
         <!-- Weight initialization method -->
         <div class="form-group">
-          <label>Kernel Initializer</label>
-          <select bind:value={editedParams.kernelInitializer}>
+          <label for="kernel-initializer">Kernel Initializer</label>
+          <select id="kernel-initializer" bind:value={editedParams.kernelInitializer}>
             <option value="glorotUniform">glorot_uniform</option>
             <option value="glorotNormal">glorot_normal</option>
             <option value="heUniform">he_uniform</option>
@@ -190,8 +190,9 @@
       {#if selectedLayer.type === 'conv2d'}
         <!-- Number of convolutional filters -->
         <div class="form-group">
-          <label>Filters</label>
+          <label for="filters">Filters</label>
           <input
+            id="filters"
             type="number"
             bind:value={editedParams.filters}
             min="1"
@@ -201,8 +202,9 @@
         
         <!-- Size of convolutional kernel -->
         <div class="form-group">
-          <label>Kernel Size</label>
+          <label for="kernel-size">Kernel Size</label>
           <input
+            id="kernel-size"
             type="number"
             bind:value={editedParams.kernelSize}
             min="1"
@@ -212,8 +214,9 @@
         
         <!-- Stride length for convolution -->
         <div class="form-group">
-          <label>Strides</label>
+          <label for="conv-strides">Strides</label>
           <input
+            id="conv-strides"
             type="number"
             bind:value={editedParams.strides}
             min="1"
@@ -223,8 +226,8 @@
         
         <!-- Padding strategy -->
         <div class="form-group">
-          <label>Padding</label>
-          <select bind:value={editedParams.padding}>
+          <label for="conv-padding">Padding</label>
+          <select id="conv-padding" bind:value={editedParams.padding}>
             <option value="valid">Valid</option>
             <option value="same">Same</option>
           </select>
@@ -232,8 +235,8 @@
         
         <!-- Activation function for conv layer -->
         <div class="form-group">
-          <label>Activation</label>
-          <select bind:value={editedParams.activation}>
+          <label for="conv-activation">Activation</label>
+          <select id="conv-activation" bind:value={editedParams.activation}>
             <option value="relu">ReLU</option>
             <option value="sigmoid">Sigmoid</option>
             <option value="tanh">Tanh</option>
@@ -246,8 +249,9 @@
       {#if selectedLayer.type === 'maxpooling2d'}
         <!-- Size of pooling window -->
         <div class="form-group">
-          <label>Pool Size</label>
+          <label for="pool-size">Pool Size</label>
           <input
+            id="pool-size"
             type="number"
             bind:value={editedParams.poolSize}
             min="2"
@@ -257,8 +261,9 @@
         
         <!-- Stride for pooling operation -->
         <div class="form-group">
-          <label>Strides</label>
+          <label for="pool-strides">Strides</label>
           <input
+            id="pool-strides"
             type="number"
             bind:value={editedParams.strides}
             min="1"
@@ -268,8 +273,8 @@
         
         <!-- Padding for pooling -->
         <div class="form-group">
-          <label>Padding</label>
-          <select bind:value={editedParams.padding}>
+          <label for="pool-padding">Padding</label>
+          <select id="pool-padding" bind:value={editedParams.padding}>
             <option value="valid">Valid</option>
             <option value="same">Same</option>
           </select>

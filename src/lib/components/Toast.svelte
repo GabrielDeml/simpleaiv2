@@ -36,11 +36,16 @@
   }
 </script>
 
-<div class="toast {type}" class:visible on:click={close}>
+<div 
+  class="toast {type}" 
+  class:visible 
+  role="status"
+  aria-live="polite"
+>
   <div class="toast-content">
     <span class="toast-icon">{getIcon()}</span>
     <span class="toast-message">{message}</span>
-    <button class="toast-close" on:click|stopPropagation={close}>✕</button>
+    <button class="toast-close" on:click={close} aria-label="Close notification">✕</button>
   </div>
 </div>
 

@@ -158,7 +158,7 @@
 </script>
 
 <!-- Main canvas area that accepts layer drops -->
-<div class="network-canvas" on:dragover={handleDragOver} on:drop={(e) => handleDrop(e)}>
+<div class="network-canvas" on:dragover={handleDragOver} on:drop={(e) => handleDrop(e)} role="application" aria-label="Neural network layer canvas">
   <!-- Container for the vertical flow of layers -->
   <div class="network-flow">
     <!-- Background line connecting all layers visually -->
@@ -185,6 +185,7 @@
           class:output={isOutput}
           style="--layer-color: {isOutput ? '#f59e0b' : displayInfo.color}"
           on:click={() => selectLayer(layer.id)}
+          on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && selectLayer(layer.id)}
           role="button"
           tabindex="0"
         >

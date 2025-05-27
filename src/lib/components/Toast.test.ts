@@ -87,13 +87,11 @@ describe('Toast', () => {
   });
 
   it('does not auto-close when autoClose is false', async () => {
-    let closeCalled = false;
     const { container } = render(Toast, { 
       props: { 
         message: 'Test', 
         duration: 1000, 
-        autoClose: false,
-        onclose: () => { closeCalled = true; }
+        autoClose: false
       } 
     });
     
@@ -106,8 +104,7 @@ describe('Toast', () => {
     
     vi.advanceTimersByTime(2000);
     
-    // Should not have called close
-    expect(closeCalled).toBe(false);
+    // Should still be visible
     expect(toast).toHaveClass('visible');
   });
 

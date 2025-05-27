@@ -52,12 +52,20 @@
 </script>
 
 <!-- Modal overlay - clicking backdrop closes modal -->
-<div class="modal-overlay" on:click={handleClose}>
+<div 
+  class="modal-overlay" 
+  on:click={handleClose}
+  on:keydown={(e) => e.key === 'Escape' && handleClose()}
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="training-progress-title"
+  tabindex="-1"
+>
   <!-- Modal content - stop propagation prevents backdrop click -->
-  <div class="modal-content" on:click|stopPropagation>
+  <div class="modal-content">
     <!-- Header with title and close button -->
     <div class="modal-header">
-      <h2>Training Progress</h2>
+      <h2 id="training-progress-title">Training Progress</h2>
       <button class="close-btn" on:click={handleClose}>×</button>
     </div>
     

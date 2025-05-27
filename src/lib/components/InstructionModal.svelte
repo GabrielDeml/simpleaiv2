@@ -18,10 +18,18 @@
   }
 </script>
 
-<div class="modal-backdrop" on:click={handleBackdropClick}>
+<div 
+  class="modal-backdrop" 
+  on:click={handleBackdropClick}
+  on:keydown={(e) => e.key === 'Escape' && handleClose()}
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="instruction-modal-title"
+  tabindex="-1"
+>
   <div class="instruction-modal">
     <div class="modal-header">
-      <h2 class="modal-title">{title}</h2>
+      <h2 id="instruction-modal-title" class="modal-title">{title}</h2>
       {#if showCloseButton}
         <button class="close-button" on:click={handleClose}>✕</button>
       {/if}
