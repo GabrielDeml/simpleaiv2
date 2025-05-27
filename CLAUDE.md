@@ -14,6 +14,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run check` - Run svelte-kit sync and type check once
 - `npm run check:watch` - Run type checking in watch mode
 
+### Testing
+- `npm run test` - Run tests with Vitest
+- `npm run test:ui` - Run tests with Vitest UI interface
+- `npm run test:coverage` - Run tests with coverage report
+
 ## Architecture Overview
 
 This is a **Visual Neural Network Designer** built with SvelteKit and TensorFlow.js. It provides a drag-and-drop interface for building, training, and evaluating neural networks directly in the browser.
@@ -59,5 +64,5 @@ This is a **Visual Neural Network Designer** built with SvelteKit and TensorFlow
 - No backend required - all ML runs client-side
 - Models can be saved to localStorage but not exported yet
 - No linting configured
-- No test framework set up
+- Test framework: Vitest with jsdom environment, tests in `*.test.ts` files
 - Accessibility warnings exist but don't affect functionality
