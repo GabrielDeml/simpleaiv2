@@ -46,12 +46,12 @@ export interface DatasetMetadata {
  * Structured tensor data ready for model training.
  */
 export interface DatasetTensors {
-  /** 4D tensor of training images [batch, height, width, channels] */
-  trainData: tf.Tensor4D;
+  /** Training data tensor - 4D for images [batch, height, width, channels] or 2D for text [batch, sequence_length] */
+  trainData: tf.Tensor4D | tf.Tensor2D;
   /** 2D tensor of training labels [batch, numClasses] */
   trainLabels: tf.Tensor2D;
-  /** 4D tensor of test images [batch, height, width, channels] */
-  testData: tf.Tensor4D;
+  /** Test data tensor - 4D for images [batch, height, width, channels] or 2D for text [batch, sequence_length] */
+  testData: tf.Tensor4D | tf.Tensor2D;
   /** 2D tensor of test labels [batch, numClasses] */
   testLabels: tf.Tensor2D;
 }
@@ -181,10 +181,24 @@ export abstract class Dataset {
     // Create indices array
     const indices = Array.from({ length: numSamples }, (_, i) => i);
     
-    // Shuffle indices (simple shuffle, could use seed for reproducibility)
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
+    // Shuffle indices using Fisher-Yates algorithm
+    if (seed !== undefined) {
+      // Simple seeded random number generator for reproducible shuffling
+      let seedValue = seed;
+      const seededRandom = () => {
+        seedValue = (seedValue * 9301 + 49297) % 233280;
+        return seedValue / 233280;
+      };
+      
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(seededRandom() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+    } else {
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
     }
     
     // Create shuffled arrays

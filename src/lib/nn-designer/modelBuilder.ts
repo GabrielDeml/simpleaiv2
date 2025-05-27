@@ -6,6 +6,11 @@ import {
   trainingHistory, 
   resetTraining 
 } from './stores';
+import { 
+  MultiHeadAttentionLayer, 
+  PositionalEncodingLayer, 
+  TransformerEncoderBlock 
+} from './transformerLayers';
 
 /**
  * ModelBuilder class handles the conversion of visual layer configurations
@@ -114,6 +119,58 @@ export class ModelBuilder {
             useBias: layer.params.useBias || true,
             kernelInitializer: layer.params.kernelInitializer || 'glorotUniform',
             inputShape: isFirstLayer ? inputShape : undefined
+          }));
+          break;
+
+        case 'embedding':
+          this.model.add(tf.layers.embedding({
+            inputDim: layer.params.vocabSize,
+            outputDim: layer.params.embeddingDim,
+            inputLength: layer.params.maxLength,
+            trainable: layer.params.trainable !== false,
+            inputShape: isFirstLayer ? inputShape : undefined
+          }));
+          break;
+
+        case 'multiHeadAttention':
+          this.model.add(new MultiHeadAttentionLayer({
+            numHeads: layer.params.numHeads,
+            keyDim: layer.params.keyDim,
+            valueDim: layer.params.valueDim,
+            dropout: layer.params.dropout || 0.0,
+            useBias: layer.params.useBias !== false
+          }));
+          break;
+
+        case 'layerNormalization':
+          this.model.add(tf.layers.layerNormalization({
+            epsilon: layer.params.epsilon || 1e-6,
+            center: layer.params.center !== false,
+            scale: layer.params.scale !== false,
+            inputShape: isFirstLayer ? inputShape : undefined
+          }));
+          break;
+
+        case 'positionalEncoding':
+          // Validate that we're not using positional encoding with image data
+          if (this.model.layers.length > 0) {
+            const prevLayer = this.model.layers[this.model.layers.length - 1];
+            const outputShape = prevLayer.outputShape;
+            if (Array.isArray(outputShape) && outputShape.length > 3) {
+              console.warn('PositionalEncoding layer is designed for sequence data, not image data');
+            }
+          }
+          this.model.add(new PositionalEncodingLayer({
+            maxLength: layer.params.maxLength
+          }));
+          break;
+
+        case 'transformerBlock':
+          this.model.add(new TransformerEncoderBlock({
+            numHeads: layer.params.numHeads,
+            keyDim: layer.params.keyDim,
+            ffDim: layer.params.ffDim,
+            dropout: layer.params.dropout || 0.1
           }));
           break;
 

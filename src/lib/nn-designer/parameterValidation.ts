@@ -260,6 +260,118 @@ export const layerValidationSchemas: Record<LayerType, LayerValidationSchema> = 
     kernelInitializer: {
       rules: [ValidationRules.kernelInitializer()]
     }
+  },
+  
+  embedding: {
+    vocabSize: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 1000000)
+      ]
+    },
+    embeddingDim: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 1024)
+      ]
+    },
+    maxLength: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 10000)
+      ]
+    },
+    trainable: {
+      rules: [ValidationRules.boolean()]
+    }
+  },
+  
+  multiHeadAttention: {
+    numHeads: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 32)
+      ]
+    },
+    keyDim: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 512)
+      ]
+    },
+    valueDim: {
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 512)
+      ]
+    },
+    dropout: {
+      rules: [ValidationRules.probabilityInclusive()]
+    },
+    useBias: {
+      rules: [ValidationRules.boolean()]
+    }
+  },
+  
+  layerNormalization: {
+    epsilon: {
+      rules: [
+        ValidationRules.positiveNumber(),
+        ValidationRules.range(1e-12, 1e-3)
+      ]
+    },
+    center: {
+      rules: [ValidationRules.boolean()]
+    },
+    scale: {
+      rules: [ValidationRules.boolean()]
+    }
+  },
+  
+  positionalEncoding: {
+    maxLength: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 10000)
+      ]
+    },
+    encodingType: {
+      required: true,
+      rules: [ValidationRules.oneOf(['sinusoidal', 'learned'])]
+    }
+  },
+  
+  transformerBlock: {
+    numHeads: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 32)
+      ]
+    },
+    keyDim: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 512)
+      ]
+    },
+    ffDim: {
+      required: true,
+      rules: [
+        ValidationRules.positiveInteger(),
+        ValidationRules.range(1, 4096)
+      ]
+    },
+    dropout: {
+      rules: [ValidationRules.probabilityInclusive()]
+    }
   }
 };
 

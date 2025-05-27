@@ -41,7 +41,6 @@
   class:visible 
   role="status"
   aria-live="polite"
-  on:click={close}
 >
   <div class="toast-content">
     <span class="toast-icon">{getIcon()}</span>

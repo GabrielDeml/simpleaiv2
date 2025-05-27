@@ -30,7 +30,9 @@
   const datasets: DatasetInfo[] = [
     { type: 'mnist', name: 'MNIST', shape: '28×28', available: true, inputShape: [28, 28] },
     { type: 'cifar10', name: 'CIFAR-10', shape: '32×32×3', available: true, inputShape: [32, 32, 3] },
-    { type: 'fashion-mnist', name: 'Fashion-MNIST', shape: '28×28', available: true, inputShape: [28, 28] }
+    { type: 'fashion-mnist', name: 'Fashion-MNIST', shape: '28×28', available: true, inputShape: [28, 28] },
+    { type: 'imdb', name: 'IMDB Reviews', shape: '200 tokens', available: true, inputShape: [200] },
+    { type: 'ag-news', name: 'AG News', shape: '150 tokens', available: true, inputShape: [150] }
   ];
   
   // Collapsible state

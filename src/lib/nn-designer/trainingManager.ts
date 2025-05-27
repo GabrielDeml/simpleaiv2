@@ -51,23 +51,29 @@ export class TrainingManager {
       // Get current configuration
       const layerConfigs = get(layers);
       const config = get(trainingConfig);
+      const datasetName = get(selectedDataset);
       
       if (layerConfigs.length < 2) {
         throw new Error('Model must have at least an input and output layer');
       }
       
+      // Get the dataset metadata to determine number of classes
+      const dataset = getDataset(datasetName);
+      const metadata = dataset.getMetadata();
+      const numClasses = metadata.numClasses;
+      
       // Check if the last layer is suitable as an output layer
       const lastLayer = layerConfigs[layerConfigs.length - 1];
-      if (lastLayer.type !== 'dense' || lastLayer.params.units !== 10) {
-        // Auto-add output layer for 10-class classification
+      if (lastLayer.type !== 'dense' || lastLayer.params.units !== numClasses) {
+        // Auto-add output layer with correct number of units for the dataset
         // This ensures the model can output predictions for all classes
-        console.warn('Adding output layer for 10-class classification');
+        console.warn(`Adding output layer for ${numClasses}-class classification`);
         layerConfigs.push({
           id: 'output-auto',
           type: 'dense',
           name: 'Output',
           params: {
-            units: 10,
+            units: numClasses,
             activation: 'softmax',
             useBias: true,
             kernelInitializer: 'glorotUniform'

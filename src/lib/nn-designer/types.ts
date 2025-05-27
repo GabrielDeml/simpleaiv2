@@ -2,7 +2,7 @@
  * Supported layer types in the neural network designer.
  * Each type corresponds to a TensorFlow.js layer implementation.
  */
-export type LayerType = 'input' | 'dense' | 'conv2d' | 'maxpooling2d' | 'dropout' | 'flatten' | 'output';
+export type LayerType = 'input' | 'dense' | 'conv2d' | 'maxpooling2d' | 'dropout' | 'flatten' | 'output' | 'embedding' | 'multiHeadAttention' | 'layerNormalization' | 'positionalEncoding' | 'transformerBlock';
 
 /**
  * Configuration for a single layer in the neural network.
@@ -108,6 +108,77 @@ export interface OutputLayerParams {
 }
 
 /**
+ * Parameters for embedding layers.
+ * Maps integer indices to dense vectors for NLP tasks.
+ */
+export interface EmbeddingLayerParams {
+  /** Size of the vocabulary (number of unique tokens) */
+  vocabSize: number;
+  /** Dimension of the embedding vectors */
+  embeddingDim: number;
+  /** Maximum sequence length */
+  maxLength: number;
+  /** Whether embeddings are trainable */
+  trainable: boolean;
+}
+
+/**
+ * Parameters for multi-head attention layers.
+ * Core component of transformer architectures.
+ */
+export interface MultiHeadAttentionLayerParams {
+  /** Number of attention heads */
+  numHeads: number;
+  /** Dimension of each attention head */
+  keyDim: number;
+  /** Dimension of value vectors (defaults to keyDim) */
+  valueDim?: number;
+  /** Dropout rate for attention weights */
+  dropout: number;
+  /** Whether to use bias in projections */
+  useBias: boolean;
+}
+
+/**
+ * Parameters for layer normalization.
+ * Normalizes inputs across features for each sample.
+ */
+export interface LayerNormalizationParams {
+  /** Small constant for numerical stability */
+  epsilon: number;
+  /** Whether to use center parameter */
+  center: boolean;
+  /** Whether to use scale parameter */
+  scale: boolean;
+}
+
+/**
+ * Parameters for positional encoding layers.
+ * Adds position information to embeddings in transformers.
+ */
+export interface PositionalEncodingParams {
+  /** Maximum sequence length to encode */
+  maxLength: number;
+  /** Type of encoding (sinusoidal or learned) */
+  encodingType: 'sinusoidal' | 'learned';
+}
+
+/**
+ * Parameters for transformer encoder blocks.
+ * Complete transformer layer with attention and feed-forward.
+ */
+export interface TransformerBlockParams {
+  /** Number of attention heads */
+  numHeads: number;
+  /** Dimension of each attention head */
+  keyDim: number;
+  /** Dimension of feed-forward network */
+  ffDim: number;
+  /** Dropout rate */
+  dropout: number;
+}
+
+/**
  * Configuration for model training.
  * Defines hyperparameters and training behavior.
  */
@@ -164,7 +235,7 @@ export interface ModelTemplate {
  * Available dataset types in the designer.
  * Each dataset has specific characteristics and preprocessing requirements.
  */
-export type DatasetType = 'mnist' | 'cifar10' | 'fashion-mnist' | 'custom';
+export type DatasetType = 'mnist' | 'cifar10' | 'fashion-mnist' | 'imdb' | 'ag-news' | 'custom';
 
 /**
  * Dataset metadata and configuration.

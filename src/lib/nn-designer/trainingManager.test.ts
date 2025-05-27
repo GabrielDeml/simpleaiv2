@@ -21,6 +21,16 @@ vi.mock('../datasets', () => ({
         trainLabels: mockTensor,
         testData: mockTensor,
         testLabels: mockTensor
+      })),
+      getMetadata: vi.fn(() => ({
+        name: 'Mock Dataset',
+        description: 'Mock dataset for testing',
+        inputShape: [28, 28],
+        channels: 1,
+        numClasses: 10,
+        trainSize: 60000,
+        testSize: 10000,
+        classNames: Array(10).fill('Class')
       }))
     };
   })
@@ -108,6 +118,16 @@ describe('TrainingManager', () => {
           trainLabels: mockTensor,
           testData: mockTensor,
           testLabels: mockTensor
+        })),
+        getMetadata: vi.fn(() => ({
+          name: 'Mock Dataset',
+          description: 'Mock dataset for testing',
+          inputShape: [28, 28],
+          channels: 1,
+          numClasses: 10,
+          trainSize: 60000,
+          testSize: 10000,
+          classNames: Array(10).fill('Class')
         }))
       };
     });
@@ -342,6 +362,234 @@ describe('TrainingManager', () => {
       
       expect(mockDispose).toHaveBeenCalledTimes(4); // 4 tensors
       expect(modelBuilder.dispose).toHaveBeenCalled();
+    });
+  });
+
+  describe('dynamic output layer handling', () => {
+    beforeEach(() => {
+      // Reset console.warn mock to capture warnings
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    it('adds output layer with correct units for IMDB dataset (2 classes)', async () => {
+      const { getDataset } = await import('../datasets');
+      (getDataset as any).mockImplementation(() => ({
+        loadTensors: vi.fn(() => Promise.resolve({
+          trainData: { dispose: vi.fn() },
+          trainLabels: { dispose: vi.fn() },
+          testData: { dispose: vi.fn() },
+          testLabels: { dispose: vi.fn() }
+        })),
+        getMetadata: vi.fn(() => ({
+          name: 'IMDB Movie Reviews',
+          description: 'Binary sentiment classification',
+          inputShape: [200],
+          channels: 1,
+          numClasses: 2,
+          trainSize: 20000,
+          testSize: 5000,
+          classNames: ['Negative', 'Positive']
+        }))
+      }));
+
+      selectedDataset.set('imdb');
+      layers.set([
+        { id: 'input-1', type: 'input', name: 'Input', params: { shape: [200] } },
+        { id: 'embedding-1', type: 'embedding', name: 'Embedding', params: { vocabSize: 10000, embeddingDim: 128, maxLength: 200 } },
+        { id: 'flatten-1', type: 'flatten', name: 'Flatten', params: {} },
+        { id: 'dense-1', type: 'dense', name: 'Dense', params: { units: 64, activation: 'relu' } }
+      ]);
+
+      const { modelBuilder } = await import('./modelBuilder');
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      
+      let capturedLayerConfigs: any;
+      (modelBuilder.buildModel as any).mockImplementation((configs: any) => {
+        capturedLayerConfigs = [...configs];
+        return mockModel;
+      });
+
+      await trainingManager.startTraining();
+
+      // Check that output layer was added with 2 units
+      expect(console.warn).toHaveBeenCalledWith('Adding output layer for 2-class classification');
+      expect(capturedLayerConfigs).toHaveLength(5);
+      expect(capturedLayerConfigs[4]).toMatchObject({
+        id: 'output-auto',
+        type: 'dense',
+        params: {
+          units: 2,
+          activation: 'softmax'
+        }
+      });
+    });
+
+    it('adds output layer with correct units for AG News dataset (4 classes)', async () => {
+      const { getDataset } = await import('../datasets');
+      (getDataset as any).mockImplementation(() => ({
+        loadTensors: vi.fn(() => Promise.resolve({
+          trainData: { dispose: vi.fn() },
+          trainLabels: { dispose: vi.fn() },
+          testData: { dispose: vi.fn() },
+          testLabels: { dispose: vi.fn() }
+        })),
+        getMetadata: vi.fn(() => ({
+          name: 'AG News',
+          description: '4-class news categorization',
+          inputShape: [150],
+          channels: 1,
+          numClasses: 4,
+          trainSize: 20000,
+          testSize: 5000,
+          classNames: ['World', 'Sports', 'Business', 'Science/Tech']
+        }))
+      }));
+
+      selectedDataset.set('ag-news');
+      layers.set([
+        { id: 'input-1', type: 'input', name: 'Input', params: { shape: [150] } },
+        { id: 'dense-1', type: 'dense', name: 'Dense', params: { units: 128, activation: 'relu' } }
+      ]);
+
+      const { modelBuilder } = await import('./modelBuilder');
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      
+      let capturedLayerConfigs: any;
+      (modelBuilder.buildModel as any).mockImplementation((configs: any) => {
+        capturedLayerConfigs = [...configs];
+        return mockModel;
+      });
+
+      await trainingManager.startTraining();
+
+      // Check that output layer was added with 4 units
+      expect(console.warn).toHaveBeenCalledWith('Adding output layer for 4-class classification');
+      expect(capturedLayerConfigs).toHaveLength(3);
+      expect(capturedLayerConfigs[2]).toMatchObject({
+        id: 'output-auto',
+        type: 'dense',
+        params: {
+          units: 4,
+          activation: 'softmax'
+        }
+      });
+    });
+
+    it('does not add output layer if last layer has correct units', async () => {
+      const { getDataset } = await import('../datasets');
+      (getDataset as any).mockImplementation(() => ({
+        loadTensors: vi.fn(() => Promise.resolve({
+          trainData: { dispose: vi.fn() },
+          trainLabels: { dispose: vi.fn() },
+          testData: { dispose: vi.fn() },
+          testLabels: { dispose: vi.fn() }
+        })),
+        getMetadata: vi.fn(() => ({
+          name: 'MNIST',
+          description: '10-class digit classification',
+          inputShape: [28, 28],
+          channels: 1,
+          numClasses: 10,
+          trainSize: 60000,
+          testSize: 10000,
+          classNames: Array(10).fill('Digit')
+        }))
+      }));
+
+      selectedDataset.set('mnist');
+      layers.set([
+        { id: 'input-1', type: 'input', name: 'Input', params: { shape: [28, 28] } },
+        { id: 'dense-1', type: 'dense', name: 'Dense', params: { units: 10, activation: 'softmax' } }
+      ]);
+
+      const { modelBuilder } = await import('./modelBuilder');
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      
+      let capturedLayerConfigs: any;
+      (modelBuilder.buildModel as any).mockImplementation((configs: any) => {
+        capturedLayerConfigs = [...configs];
+        return mockModel;
+      });
+
+      await trainingManager.startTraining();
+
+      // Check that no output layer was added
+      expect(console.warn).not.toHaveBeenCalled();
+      expect(capturedLayerConfigs).toHaveLength(2);
+    });
+
+    it('handles text classification model architecture correctly', async () => {
+      const { getDataset } = await import('../datasets');
+      (getDataset as any).mockImplementation(() => ({
+        loadTensors: vi.fn(() => Promise.resolve({
+          trainData: { dispose: vi.fn() },
+          trainLabels: { dispose: vi.fn() },
+          testData: { dispose: vi.fn() },
+          testLabels: { dispose: vi.fn() }
+        })),
+        getMetadata: vi.fn(() => ({
+          name: 'IMDB Movie Reviews',
+          description: 'Binary sentiment classification',
+          inputShape: [200],
+          channels: 1,
+          numClasses: 2,
+          trainSize: 20000,
+          testSize: 5000,
+          classNames: ['Negative', 'Positive']
+        }))
+      }));
+
+      selectedDataset.set('imdb');
+      // Typical text classification architecture
+      layers.set([
+        { id: 'input-1', type: 'input', name: 'Input', params: { shape: [200] } },
+        { id: 'embedding-1', type: 'embedding', name: 'Embedding', params: { vocabSize: 10000, embeddingDim: 128, maxLength: 200 } },
+        { id: 'flatten-1', type: 'flatten', name: 'Flatten', params: {} },
+        { id: 'dense-1', type: 'dense', name: 'Dense 1', params: { units: 64, activation: 'relu' } },
+        { id: 'dropout-1', type: 'dropout', name: 'Dropout', params: { rate: 0.5 } },
+        { id: 'dense-2', type: 'dense', name: 'Output', params: { units: 2, activation: 'softmax' } }
+      ]);
+
+      const { modelBuilder } = await import('./modelBuilder');
+      const mockModel = {
+        summary: vi.fn(),
+        evaluate: vi.fn(() => [
+          { data: () => Promise.resolve(new Float32Array([0.5])), dispose: vi.fn() },
+          { data: () => Promise.resolve(new Float32Array([0.8])), dispose: vi.fn() }
+        ])
+      };
+      
+      let capturedLayerConfigs: any;
+      (modelBuilder.buildModel as any).mockImplementation((configs: any) => {
+        capturedLayerConfigs = [...configs];
+        return mockModel;
+      });
+
+      await trainingManager.startTraining();
+
+      // Check that no additional output layer was added since last layer already has correct units
+      expect(console.warn).not.toHaveBeenCalled();
+      expect(capturedLayerConfigs).toHaveLength(6);
+      expect(capturedLayerConfigs[5].params.units).toBe(2);
     });
   });
 

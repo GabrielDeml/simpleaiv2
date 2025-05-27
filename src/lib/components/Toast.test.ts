@@ -108,7 +108,7 @@ describe('Toast', () => {
     expect(toast).toHaveClass('visible');
   });
 
-  it('closes on click', async () => {
+  it('does not close on toast click (only button)', async () => {
     const { container } = render(Toast, { 
       props: { 
         message: 'Test', 
@@ -125,11 +125,11 @@ describe('Toast', () => {
     
     await fireEvent.click(toast!);
     
-    // Wait for close animation
+    // Wait a bit to ensure no close happens
     await vi.advanceTimersToNextTimerAsync();
     
-    // Check that toast is no longer visible
-    expect(toast).not.toHaveClass('visible');
+    // Check that toast is still visible (click on toast itself should not close)
+    expect(toast).toHaveClass('visible');
   });
 
   it('closes on close button click', async () => {

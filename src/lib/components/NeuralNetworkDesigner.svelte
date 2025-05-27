@@ -18,6 +18,7 @@
   import InstructionModal from './InstructionModal.svelte';
   import ToastContainer from './ToastContainer.svelte';
   import HelpModal from './HelpModal.svelte';
+  import { onMount } from 'svelte';
   
   // Control visibility of training progress modal
   let showTrainingProgress = false;
@@ -62,6 +63,21 @@
       showExportDropdown = false;
     }
   }
+  
+  // Set up click outside listener when dropdown is shown
+  onMount(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (showExportDropdown) {
+        handleClickOutside(event);
+      }
+    };
+    
+    document.addEventListener('click', handleDocumentClick);
+    
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  });
 
   // Export trained model to downloadable files
   async function handleExport() {
@@ -219,7 +235,7 @@ print("4. Run the notebook to train your model with GPU acceleration!")
 </script>
 
 <!-- Main container for the neural network designer application -->
-<div class="designer-container" on:click={handleClickOutside}>
+<div class="designer-container">
   <!-- Top toolbar with action buttons -->
   <div class="top-bar">
     <div class="toolbar">

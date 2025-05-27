@@ -128,8 +128,24 @@
             break;
             
           case 'flatten':
+            // Skip flatten layer if previous layer outputs 2D (e.g., dense layer)
+            // Flatten only works with 3D+ inputs
+            if (model.layers.length > 0) {
+              const prevLayer = model.layers[model.layers.length - 1];
+              const outputShape = prevLayer.outputShape;
+              if (Array.isArray(outputShape) && outputShape.length <= 2) {
+                console.warn('Skipping flatten layer: previous layer outputs 2D tensor');
+                break;
+              }
+            }
+            
+            // For image data, ensure we handle the channel dimension properly
+            const flattenInputShape = model.layers.length === 0 && inputShape
+              ? inputShape.length === 2 ? [...inputShape, 1] : inputShape
+              : undefined;
+              
             model.add(tf.layers.flatten({
-              inputShape: model.layers.length === 0 ? inputShape : undefined
+              inputShape: flattenInputShape
             }));
             break;
             

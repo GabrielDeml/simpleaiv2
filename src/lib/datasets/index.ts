@@ -7,6 +7,8 @@
 import './mnist';
 import './cifar10Dataset';
 import './fashionMnistDataset';
+import './imdbDataset';
+import './agNewsDataset';
 
 // Re-export the interface and utilities
 export * from './datasetInterface';

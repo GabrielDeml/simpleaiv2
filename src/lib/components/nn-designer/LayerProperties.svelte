@@ -354,6 +354,289 @@
         </div>
       {/if}
       
+      <!-- Embedding layer properties -->
+      {#if selectedLayer.type === 'embedding'}
+        <div class="form-group">
+          <label for="vocab-size">Vocabulary Size</label>
+          <input
+            id="vocab-size"
+            type="number"
+            bind:value={editedParams.vocabSize}
+            on:input={() => handleParameterChange('vocabSize', editedParams.vocabSize)}
+            min="1"
+            max="1000000"
+            class:error={validationResult.parameterErrors.vocabSize}
+          />
+          {#if validationResult.parameterErrors.vocabSize}
+            <span class="error-text">{validationResult.parameterErrors.vocabSize[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="embedding-dim">Embedding Dimension</label>
+          <input
+            id="embedding-dim"
+            type="number"
+            bind:value={editedParams.embeddingDim}
+            on:input={() => handleParameterChange('embeddingDim', editedParams.embeddingDim)}
+            min="1"
+            max="1024"
+            class:error={validationResult.parameterErrors.embeddingDim}
+          />
+          {#if validationResult.parameterErrors.embeddingDim}
+            <span class="error-text">{validationResult.parameterErrors.embeddingDim[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="max-length">Max Sequence Length</label>
+          <input
+            id="max-length"
+            type="number"
+            bind:value={editedParams.maxLength}
+            on:input={() => handleParameterChange('maxLength', editedParams.maxLength)}
+            min="1"
+            max="10000"
+            class:error={validationResult.parameterErrors.maxLength}
+          />
+          {#if validationResult.parameterErrors.maxLength}
+            <span class="error-text">{validationResult.parameterErrors.maxLength[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="trainable">Trainable</label>
+          <div class="toggle-switch">
+            <input
+              type="checkbox"
+              id="trainable"
+              bind:checked={editedParams.trainable}
+            />
+            <label for="trainable"></label>
+          </div>
+        </div>
+      {/if}
+      
+      <!-- Multi-Head Attention layer properties -->
+      {#if selectedLayer.type === 'multiHeadAttention'}
+        <div class="form-group">
+          <label for="num-heads">Number of Heads</label>
+          <input
+            id="num-heads"
+            type="number"
+            bind:value={editedParams.numHeads}
+            on:input={() => handleParameterChange('numHeads', editedParams.numHeads)}
+            min="1"
+            max="32"
+            class:error={validationResult.parameterErrors.numHeads}
+          />
+          {#if validationResult.parameterErrors.numHeads}
+            <span class="error-text">{validationResult.parameterErrors.numHeads[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="key-dim">Key Dimension</label>
+          <input
+            id="key-dim"
+            type="number"
+            bind:value={editedParams.keyDim}
+            on:input={() => handleParameterChange('keyDim', editedParams.keyDim)}
+            min="1"
+            max="512"
+            class:error={validationResult.parameterErrors.keyDim}
+          />
+          {#if validationResult.parameterErrors.keyDim}
+            <span class="error-text">{validationResult.parameterErrors.keyDim[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="value-dim">Value Dimension (optional)</label>
+          <input
+            id="value-dim"
+            type="number"
+            bind:value={editedParams.valueDim}
+            on:input={() => handleParameterChange('valueDim', editedParams.valueDim)}
+            min="1"
+            max="512"
+            placeholder="Same as key dimension"
+            class:error={validationResult.parameterErrors.valueDim}
+          />
+          {#if validationResult.parameterErrors.valueDim}
+            <span class="error-text">{validationResult.parameterErrors.valueDim[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="attention-dropout">Dropout Rate</label>
+          <input
+            id="attention-dropout"
+            type="number"
+            bind:value={editedParams.dropout}
+            on:input={() => handleParameterChange('dropout', editedParams.dropout)}
+            min="0"
+            max="1"
+            step="0.1"
+            class:error={validationResult.parameterErrors.dropout}
+          />
+          {#if validationResult.parameterErrors.dropout}
+            <span class="error-text">{validationResult.parameterErrors.dropout[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="attention-bias">Use Bias</label>
+          <div class="toggle-switch">
+            <input
+              type="checkbox"
+              id="attention-bias"
+              bind:checked={editedParams.useBias}
+            />
+            <label for="attention-bias"></label>
+          </div>
+        </div>
+      {/if}
+      
+      <!-- Layer Normalization properties -->
+      {#if selectedLayer.type === 'layerNormalization'}
+        <div class="form-group">
+          <label for="epsilon">Epsilon</label>
+          <input
+            id="epsilon"
+            type="number"
+            bind:value={editedParams.epsilon}
+            on:input={() => handleParameterChange('epsilon', editedParams.epsilon)}
+            min="1e-12"
+            max="1e-3"
+            step="1e-7"
+            class:error={validationResult.parameterErrors.epsilon}
+          />
+          {#if validationResult.parameterErrors.epsilon}
+            <span class="error-text">{validationResult.parameterErrors.epsilon[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="center">Center</label>
+          <div class="toggle-switch">
+            <input
+              type="checkbox"
+              id="center"
+              bind:checked={editedParams.center}
+            />
+            <label for="center"></label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="scale">Scale</label>
+          <div class="toggle-switch">
+            <input
+              type="checkbox"
+              id="scale"
+              bind:checked={editedParams.scale}
+            />
+            <label for="scale"></label>
+          </div>
+        </div>
+      {/if}
+      
+      <!-- Positional Encoding properties -->
+      {#if selectedLayer.type === 'positionalEncoding'}
+        <div class="form-group">
+          <label for="pe-max-length">Max Sequence Length</label>
+          <input
+            id="pe-max-length"
+            type="number"
+            bind:value={editedParams.maxLength}
+            on:input={() => handleParameterChange('maxLength', editedParams.maxLength)}
+            min="1"
+            max="10000"
+            class:error={validationResult.parameterErrors.maxLength}
+          />
+          {#if validationResult.parameterErrors.maxLength}
+            <span class="error-text">{validationResult.parameterErrors.maxLength[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="encoding-type">Encoding Type</label>
+          <select id="encoding-type" bind:value={editedParams.encodingType}>
+            <option value="sinusoidal">Sinusoidal</option>
+            <option value="learned">Learned</option>
+          </select>
+        </div>
+      {/if}
+      
+      <!-- Transformer Block properties -->
+      {#if selectedLayer.type === 'transformerBlock'}
+        <div class="form-group">
+          <label for="tb-num-heads">Number of Heads</label>
+          <input
+            id="tb-num-heads"
+            type="number"
+            bind:value={editedParams.numHeads}
+            on:input={() => handleParameterChange('numHeads', editedParams.numHeads)}
+            min="1"
+            max="32"
+            class:error={validationResult.parameterErrors.numHeads}
+          />
+          {#if validationResult.parameterErrors.numHeads}
+            <span class="error-text">{validationResult.parameterErrors.numHeads[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="tb-key-dim">Key Dimension</label>
+          <input
+            id="tb-key-dim"
+            type="number"
+            bind:value={editedParams.keyDim}
+            on:input={() => handleParameterChange('keyDim', editedParams.keyDim)}
+            min="1"
+            max="512"
+            class:error={validationResult.parameterErrors.keyDim}
+          />
+          {#if validationResult.parameterErrors.keyDim}
+            <span class="error-text">{validationResult.parameterErrors.keyDim[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="ff-dim">Feed-Forward Dimension</label>
+          <input
+            id="ff-dim"
+            type="number"
+            bind:value={editedParams.ffDim}
+            on:input={() => handleParameterChange('ffDim', editedParams.ffDim)}
+            min="1"
+            max="4096"
+            class:error={validationResult.parameterErrors.ffDim}
+          />
+          {#if validationResult.parameterErrors.ffDim}
+            <span class="error-text">{validationResult.parameterErrors.ffDim[0]}</span>
+          {/if}
+        </div>
+        
+        <div class="form-group">
+          <label for="tb-dropout">Dropout Rate</label>
+          <input
+            id="tb-dropout"
+            type="number"
+            bind:value={editedParams.dropout}
+            on:input={() => handleParameterChange('dropout', editedParams.dropout)}
+            min="0"
+            max="1"
+            step="0.1"
+            class:error={validationResult.parameterErrors.dropout}
+          />
+          {#if validationResult.parameterErrors.dropout}
+            <span class="error-text">{validationResult.parameterErrors.dropout[0]}</span>
+          {/if}
+        </div>
+      {/if}
+      
       <!-- Action buttons -->
       <div class="form-actions">
         <button 

@@ -368,6 +368,136 @@ export const modelTemplates: ModelTemplate[] = [
         }
       }
     ]
+  },
+  {
+    id: 'text-classifier',
+    name: 'Text Classifier',
+    description: 'Transformer-based model for text classification tasks',
+    category: 'classification',
+    recommendedDataset: 'imdb',
+    layers: [
+      {
+        id: 'input-1',
+        type: 'input',
+        name: 'Input Layer',
+        params: { shape: [200] }  // Sequence length
+      },
+      {
+        id: 'embedding-1',
+        type: 'embedding',
+        name: 'Embedding',
+        params: { 
+          vocabSize: 10000, 
+          embeddingDim: 128, 
+          maxLength: 200, 
+          trainable: true 
+        }
+      },
+      {
+        id: 'pos-encoding-1',
+        type: 'positionalEncoding',
+        name: 'Positional Encoding',
+        params: { maxLength: 200, encodingType: 'sinusoidal' }
+      },
+      {
+        id: 'transformer-1',
+        type: 'transformerBlock',
+        name: 'Transformer Block 1',
+        params: { numHeads: 8, keyDim: 16, ffDim: 128, dropout: 0.1 }
+      },
+      {
+        id: 'transformer-2',
+        type: 'transformerBlock',
+        name: 'Transformer Block 2',
+        params: { numHeads: 8, keyDim: 16, ffDim: 128, dropout: 0.1 }
+      },
+      {
+        id: 'flatten-1',
+        type: 'flatten',
+        name: 'Flatten',
+        params: {}
+      },
+      {
+        id: 'dense-1',
+        type: 'dense',
+        name: 'Dense',
+        params: { units: 64, activation: 'relu', useBias: true, kernelInitializer: 'glorotUniform' }
+      },
+      {
+        id: 'dropout-1',
+        type: 'dropout',
+        name: 'Dropout',
+        params: { rate: 0.3 }
+      },
+      {
+        id: 'output-1',
+        type: 'output',
+        name: 'Output',
+        params: { units: 2, activation: 'softmax' }  // Binary classification
+      }
+    ]
+  },
+  {
+    id: 'news-classifier',
+    name: 'News Categorizer',
+    description: 'Multi-class text classification with attention mechanism',
+    category: 'classification',
+    recommendedDataset: 'ag-news',
+    layers: [
+      {
+        id: 'input-1',
+        type: 'input',
+        name: 'Input Layer',
+        params: { shape: [150] }  // Shorter sequence for news
+      },
+      {
+        id: 'embedding-1',
+        type: 'embedding',
+        name: 'Embedding',
+        params: { 
+          vocabSize: 10000, 
+          embeddingDim: 64, 
+          maxLength: 150, 
+          trainable: true 
+        }
+      },
+      {
+        id: 'attention-1',
+        type: 'multiHeadAttention',
+        name: 'Multi-Head Attention',
+        params: { numHeads: 4, keyDim: 16, dropout: 0.1, useBias: true }
+      },
+      {
+        id: 'norm-1',
+        type: 'layerNormalization',
+        name: 'Layer Normalization',
+        params: { epsilon: 1e-6, center: true, scale: true }
+      },
+      {
+        id: 'flatten-1',
+        type: 'flatten',
+        name: 'Flatten',
+        params: {}
+      },
+      {
+        id: 'dense-1',
+        type: 'dense',
+        name: 'Dense',
+        params: { units: 128, activation: 'relu', useBias: true, kernelInitializer: 'glorotUniform' }
+      },
+      {
+        id: 'dropout-1',
+        type: 'dropout',
+        name: 'Dropout',
+        params: { rate: 0.2 }
+      },
+      {
+        id: 'output-1',
+        type: 'output',
+        name: 'Output',
+        params: { units: 4, activation: 'softmax' }  // 4 news categories
+      }
+    ]
   }
 ];
 
