@@ -163,5 +163,14 @@ export const layerDefinitions: Record<LayerType, LayerDefinition> = {
     },
     description: 'Complete transformer encoder layer with multi-head attention, normalization, and feed-forward network.',
     learnMore: 'A full transformer block combines attention (for capturing relationships) with position-wise feed-forward networks (for transforming representations).'
+  },
+  globalAveragePooling1D: {
+    type: 'globalAveragePooling1D',
+    displayName: 'Global Avg Pool 1D',
+    icon: 'GP',
+    color: '#059669',
+    defaultParams: {},
+    description: 'Averages across the sequence dimension to produce a fixed-size output. Ideal for converting variable-length sequences to fixed vectors.',
+    learnMore: 'Global average pooling reduces each feature map to a single value by averaging. More interpretable than flatten and reduces parameters.'
   }
 };

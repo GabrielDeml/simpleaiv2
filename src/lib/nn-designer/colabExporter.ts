@@ -73,7 +73,82 @@ print("GPU Available:", tf.config.list_physical_devices('GPU'))
 tf.random.set_seed(42)
 np.random.seed(42)
 
-print("Environment setup complete!")`;
+# Custom layer implementations for transformer architecture
+class PositionalEncoding(layers.Layer):
+    """Adds positional encoding to embedding vectors."""
+    
+    def __init__(self, max_length=5000, **kwargs):
+        super().__init__(**kwargs)
+        self.max_length = max_length
+        
+    def build(self, input_shape):
+        # Create positional encoding matrix
+        position = np.arange(self.max_length)[:, np.newaxis]
+        div_term = np.exp(np.arange(0, input_shape[-1], 2) * -(np.log(10000.0) / input_shape[-1]))
+        
+        pe = np.zeros((self.max_length, input_shape[-1]))
+        pe[:, 0::2] = np.sin(position * div_term)
+        pe[:, 1::2] = np.cos(position * div_term)
+        
+        self.pos_encoding = tf.constant(pe[np.newaxis, :, :], dtype=tf.float32)
+        super().build(input_shape)
+        
+    def call(self, inputs):
+        seq_len = tf.shape(inputs)[1]
+        return inputs + self.pos_encoding[:, :seq_len, :]
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update({"max_length": self.max_length})
+        return config
+
+class TransformerBlock(layers.Layer):
+    """Transformer encoder block with multi-head attention and feed-forward network."""
+    
+    def __init__(self, num_heads, key_dim, ff_dim, dropout=0.1, **kwargs):
+        super().__init__(**kwargs)
+        self.num_heads = num_heads
+        self.key_dim = key_dim
+        self.ff_dim = ff_dim
+        self.dropout_rate = dropout
+        
+    def build(self, input_shape):
+        self.att = layers.MultiHeadAttention(
+            num_heads=self.num_heads, 
+            key_dim=self.key_dim
+        )
+        self.ffn = keras.Sequential([
+            layers.Dense(self.ff_dim, activation="relu"),
+            layers.Dense(input_shape[-1])
+        ])
+        self.layernorm1 = layers.LayerNormalization(epsilon=1e-6)
+        self.layernorm2 = layers.LayerNormalization(epsilon=1e-6)
+        self.dropout1 = layers.Dropout(self.dropout_rate)
+        self.dropout2 = layers.Dropout(self.dropout_rate)
+        super().build(input_shape)
+        
+    def call(self, inputs, training=None):
+        # Multi-head attention
+        attn_output = self.att(inputs, inputs)
+        attn_output = self.dropout1(attn_output, training=training)
+        out1 = self.layernorm1(inputs + attn_output)
+        
+        # Feed-forward network
+        ffn_output = self.ffn(out1)
+        ffn_output = self.dropout2(ffn_output, training=training)
+        return self.layernorm2(out1 + ffn_output)
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "num_heads": self.num_heads,
+            "key_dim": self.key_dim,
+            "ff_dim": self.ff_dim,
+            "dropout": self.dropout_rate
+        })
+        return config
+
+print("Environment setup complete with custom layers!")`;
 
     return {
       cell_type: "code",
@@ -148,6 +223,77 @@ y_test = keras.utils.to_categorical(y_test, 10)
 
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']`;
+        break;
+        
+      case 'imdb':
+        description = "# IMDB Dataset Loading\n# Movie reviews for sentiment analysis";
+        code = `# Load IMDB dataset
+from tensorflow.keras.datasets import imdb
+from tensorflow.keras.preprocessing import sequence
+
+# Load dataset with vocabulary size limit
+vocab_size = 10000
+max_length = 256
+
+(x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=vocab_size)
+
+# Pad sequences to same length
+x_train = sequence.pad_sequences(x_train, maxlen=max_length)
+x_test = sequence.pad_sequences(x_test, maxlen=max_length)
+
+# Convert labels to one-hot encoding for binary classification
+y_train = keras.utils.to_categorical(y_train, 2)
+y_test = keras.utils.to_categorical(y_test, 2)
+
+class_names = ['Negative', 'Positive']`;
+        break;
+        
+      case 'ag-news':
+        description = "# AG News Dataset Loading\n# News article classification";
+        code = `# Load AG News dataset
+# Note: AG News is not built into Keras, so we'll use TensorFlow Datasets
+import tensorflow_datasets as tfds
+
+# Load the dataset
+ds_train, ds_test = tfds.load('ag_news_subset', 
+                               split=['train', 'test'],
+                               as_supervised=True)
+
+# Prepare tokenizer and preprocess text
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+vocab_size = 10000
+max_length = 120
+
+# Extract texts and labels
+train_texts = []
+train_labels = []
+for text, label in ds_train:
+    train_texts.append(text.numpy().decode('utf-8'))
+    train_labels.append(label.numpy())
+
+test_texts = []
+test_labels = []
+for text, label in ds_test:
+    test_texts.append(text.numpy().decode('utf-8'))
+    test_labels.append(label.numpy())
+
+# Tokenize and pad
+tokenizer = Tokenizer(num_words=vocab_size, oov_token='<OOV>')
+tokenizer.fit_on_texts(train_texts)
+
+x_train = tokenizer.texts_to_sequences(train_texts)
+x_test = tokenizer.texts_to_sequences(test_texts)
+
+x_train = pad_sequences(x_train, maxlen=max_length, padding='post', truncating='post')
+x_test = pad_sequences(x_test, maxlen=max_length, padding='post', truncating='post')
+
+# Convert labels to one-hot encoding
+y_train = keras.utils.to_categorical(train_labels, 4)
+y_test = keras.utils.to_categorical(test_labels, 4)
+
+class_names = ['World', 'Sports', 'Business', 'Sci/Tech']`;
         break;
         
       default:
@@ -273,6 +419,26 @@ keras.utils.plot_model(model, show_shapes=True, show_layer_names=True)`;
         
       case 'output':
         return `layers.Dense(${layer.params.units}, activation='${layer.params.activation}')`;
+        
+      case 'embedding':
+        return `layers.Embedding(input_dim=${layer.params.vocabSize}, output_dim=${layer.params.embeddingDim}, input_length=${layer.params.maxLength}, trainable=${toPythonBool(layer.params.trainable !== false)})`;
+        
+      case 'multiHeadAttention':
+        return `layers.MultiHeadAttention(num_heads=${layer.params.numHeads}, key_dim=${layer.params.keyDim}, value_dim=${layer.params.valueDim || layer.params.keyDim}, dropout=${layer.params.dropout || 0.0}, use_bias=${toPythonBool(layer.params.useBias !== false)})`;
+        
+      case 'layerNormalization':
+        return `layers.LayerNormalization(epsilon=${layer.params.epsilon || 1e-6}, center=${toPythonBool(layer.params.center !== false)}, scale=${toPythonBool(layer.params.scale !== false)})`;
+        
+      case 'positionalEncoding':
+        // Use the custom PositionalEncoding layer defined in setup cell
+        return `PositionalEncoding(max_length=${layer.params.maxLength})`;
+        
+      case 'transformerBlock':
+        // Use the custom TransformerBlock layer defined in setup cell
+        return `TransformerBlock(num_heads=${layer.params.numHeads}, key_dim=${layer.params.keyDim}, ff_dim=${layer.params.ffDim}, dropout=${layer.params.dropout || 0.1})`;
+        
+      case 'globalAveragePooling1D':
+        return `layers.GlobalAveragePooling1D()`;
         
       default:
         return null;

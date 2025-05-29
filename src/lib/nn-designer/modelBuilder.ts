@@ -1,4 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
+// Explicitly import the function to ensure it's available
+import '@tensorflow/tfjs-layers';
 import type { LayerConfig, TrainingConfig } from './types';
 import { 
   isTraining, 
@@ -9,7 +11,8 @@ import {
 import { 
   MultiHeadAttentionLayer, 
   PositionalEncodingLayer, 
-  TransformerEncoderBlock 
+  TransformerEncoderBlock,
+  GlobalAveragePooling1DLayer
 } from './transformerLayers';
 
 /**
@@ -172,6 +175,11 @@ export class ModelBuilder {
             ffDim: layer.params.ffDim,
             dropout: layer.params.dropout || 0.1
           }));
+          break;
+
+        case 'globalAveragePooling1D':
+          // Use our custom implementation since tf.layers.globalAveragePooling1d might not be available
+          this.model.add(new GlobalAveragePooling1DLayer());
           break;
 
         default:

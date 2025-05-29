@@ -412,9 +412,9 @@ export const modelTemplates: ModelTemplate[] = [
         params: { numHeads: 8, keyDim: 16, ffDim: 128, dropout: 0.1 }
       },
       {
-        id: 'flatten-1',
-        type: 'flatten',
-        name: 'Flatten',
+        id: 'pooling-1',
+        type: 'globalAveragePooling1D',
+        name: 'Global Average Pooling',
         params: {}
       },
       {
@@ -474,9 +474,9 @@ export const modelTemplates: ModelTemplate[] = [
         params: { epsilon: 1e-6, center: true, scale: true }
       },
       {
-        id: 'flatten-1',
-        type: 'flatten',
-        name: 'Flatten',
+        id: 'pooling-1',
+        type: 'globalAveragePooling1D',
+        name: 'Global Average Pooling',
         params: {}
       },
       {

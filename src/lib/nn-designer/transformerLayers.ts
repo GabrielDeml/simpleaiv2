@@ -270,6 +270,75 @@ export class PositionalEncodingLayer extends LayerClass {
  * Transformer Encoder Block
  * Combines multi-head attention, normalization, and feed-forward network
  */
+/**
+ * Global Average Pooling 1D layer for sequence data.
+ * Averages across the sequence dimension to produce fixed-size output.
+ */
+export class GlobalAveragePooling1DLayer extends LayerClass {
+  constructor(config?: any) {
+    super(config);
+  }
+
+  build(inputShape: tf.Shape | tf.Shape[]): void {
+    // Handle both single shape and array of shapes
+    let shape: tf.Shape;
+    if (Array.isArray(inputShape)) {
+      if (Array.isArray(inputShape[0])) {
+        shape = inputShape[0] as tf.Shape;
+      } else {
+        shape = inputShape as tf.Shape;
+      }
+    } else {
+      shape = inputShape;
+    }
+    
+    // Validate that input shape represents sequence data
+    // Accept both 2D ([sequence_length, features]) and 3D ([batch_size, sequence_length, features])
+    if (!shape || shape.length < 2 || shape.length > 3) {
+      throw new Error(`GlobalAveragePooling1D layer expects 2D or 3D input shape, but got shape with ${shape ? shape.length : 0} dimensions`);
+    }
+    
+    super.build(inputShape);
+  }
+
+  computeOutputShape(inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
+    const shape = Array.isArray(inputShape[0]) ? inputShape[0] : inputShape as tf.Shape;
+    // During build time: input shape is [sequence, features]
+    // Output shape: [features] (batch dimension is implicit)
+    if (shape.length === 2) {
+      return [shape[1]] as tf.Shape;
+    }
+    // During runtime: input shape is [batch, sequence, features]
+    // Output shape: [batch, features]
+    return [shape[0], shape[2]] as tf.Shape;
+  }
+
+  call(inputs: tf.Tensor | tf.Tensor[]): tf.Tensor | tf.Tensor[] {
+    return tf.tidy(() => {
+      const input = Array.isArray(inputs) ? inputs[0] : inputs;
+      
+      // Validate tensor shape at runtime
+      const inputRank = input.shape ? input.shape.length : 0;
+      if (inputRank !== 3) {
+        throw new Error(`GlobalAveragePooling1D expects 3D tensor input, but got tensor with rank ${inputRank}`);
+      }
+      
+      // Average across the sequence dimension (axis=1)
+      // For a 3D tensor, axis 1 is the sequence dimension
+      return tf.mean(input, 1);
+    });
+  }
+
+  getConfig(): any {
+    const config = super.getConfig();
+    return config;
+  }
+
+  static get className() {
+    return 'GlobalAveragePooling1DLayer';
+  }
+}
+
 export class TransformerEncoderBlock extends LayerClass {
   private numHeads: number;
   private keyDim: number;
@@ -392,3 +461,4 @@ export class TransformerEncoderBlock extends LayerClass {
 tf.serialization.registerClass(MultiHeadAttentionLayer);
 tf.serialization.registerClass(PositionalEncodingLayer);
 tf.serialization.registerClass(TransformerEncoderBlock);
+tf.serialization.registerClass(GlobalAveragePooling1DLayer);

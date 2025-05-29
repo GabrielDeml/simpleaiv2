@@ -2,7 +2,7 @@
  * Supported layer types in the neural network designer.
  * Each type corresponds to a TensorFlow.js layer implementation.
  */
-export type LayerType = 'input' | 'dense' | 'conv2d' | 'maxpooling2d' | 'dropout' | 'flatten' | 'output' | 'embedding' | 'multiHeadAttention' | 'layerNormalization' | 'positionalEncoding' | 'transformerBlock';
+export type LayerType = 'input' | 'dense' | 'conv2d' | 'maxpooling2d' | 'dropout' | 'flatten' | 'output' | 'embedding' | 'multiHeadAttention' | 'layerNormalization' | 'positionalEncoding' | 'transformerBlock' | 'globalAveragePooling1D';
 
 /**
  * Configuration for a single layer in the neural network.
@@ -176,6 +176,14 @@ export interface TransformerBlockParams {
   ffDim: number;
   /** Dropout rate */
   dropout: number;
+}
+
+/**
+ * Parameters for global average pooling 1D layers.
+ * Averages the temporal dimension to produce a fixed-size output.
+ */
+export interface GlobalAveragePooling1DParams {
+  // No parameters needed - this layer simply averages across the sequence dimension
 }
 
 /**
