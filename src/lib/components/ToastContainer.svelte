@@ -10,7 +10,7 @@
       message={toast.message}
       duration={toast.duration}
       autoClose={toast.autoClose}
-      on:close={() => removeToast(toast.id)}
+      onclose={() => removeToast(toast.id)}
     />
   {/each}
 </div>

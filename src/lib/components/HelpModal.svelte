@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  
   export let isOpen = false;
   
-  const dispatch = createEventDispatcher();
+  // Event callback (Svelte 5 style)
+  export let onclose: (() => void) | undefined = undefined;
   
   let activeTab = 'quickstart';
-  let searchQuery = '';
   
   const tabs = [
     { id: 'quickstart', label: 'Quick Start' },
@@ -18,7 +16,7 @@
   ];
   
   function close() {
-    dispatch('close');
+    onclose?.();
   }
 </script>
 

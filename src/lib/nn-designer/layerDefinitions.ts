@@ -1,4 +1,4 @@
-import type { LayerType, LayerConfig } from './types';
+import type { LayerType } from './types';
 
 export interface LayerDefinition {
   type: LayerType;
@@ -47,7 +47,8 @@ export const layerDefinitions: Record<LayerType, LayerDefinition> = {
       strides: 1,
       padding: 'same',
       activation: 'relu',
-      useBias: true
+      useBias: true,
+      kernelInitializer: 'glorotUniform'
     },
     description: 'Convolutional layers detect features in images like edges, shapes, and textures by sliding filters across the input.',
     learnMore: 'Conv layers are the foundation of computer vision. Each filter learns to detect specific patterns, building up from simple edges to complex objects.'
@@ -119,6 +120,7 @@ export const layerDefinitions: Record<LayerType, LayerDefinition> = {
     defaultParams: {
       numHeads: 8,
       keyDim: 64,
+      valueDim: 64,
       dropout: 0.1,
       useBias: true
     },

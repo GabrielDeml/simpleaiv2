@@ -372,6 +372,10 @@ export const layerValidationSchemas: Record<LayerType, LayerValidationSchema> = 
     dropout: {
       rules: [ValidationRules.probabilityInclusive()]
     }
+  },
+  
+  globalAveragePooling1D: {
+    // No parameters to validate
   }
 };
 

@@ -19,8 +19,6 @@
   import Tooltip from '$lib/components/Tooltip.svelte';
   import LayerInfoPopup from '$lib/components/LayerInfoPopup.svelte';
   
-  // Tracks which layer type is currently being dragged (for potential visual feedback)
-  let draggedLayerType: LayerType | null = null;
   
   // Collapsible state
   let isExpanded = true;
@@ -39,7 +37,6 @@
    * a new instance, not moving an existing layer.
    */
   function handleDragStart(e: DragEvent, layerType: LayerType) {
-    draggedLayerType = layerType;
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = 'copy';
       e.dataTransfer.setData('layerType', layerType);
@@ -63,10 +60,9 @@
   
   /**
    * Cleans up after a drag operation ends
-   * Resets the draggedLayerType to remove any visual drag indicators
    */
   function handleDragEnd() {
-    draggedLayerType = null;
+    // Currently no cleanup needed
   }
   
   /**
@@ -187,7 +183,7 @@
 <LayerInfoPopup 
   layerType={selectedInfoLayer} 
   isOpen={showInfoPopup} 
-  on:close={() => showInfoPopup = false} 
+  onclose={() => showInfoPopup = false} 
 />
 
 <style>

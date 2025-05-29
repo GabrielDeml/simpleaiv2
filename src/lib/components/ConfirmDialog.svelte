@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-
   export let title: string;
   export let message: string;
   export let confirmText: string = 'Confirm';
   export let cancelText: string = 'Cancel';
   export let type: 'danger' | 'warning' | 'info' = 'info';
 
-  const dispatch = createEventDispatcher();
+  // Event callbacks (Svelte 5 style)
+  export let onconfirm: (() => void) | undefined = undefined;
+  export let oncancel: (() => void) | undefined = undefined;
 
   function handleConfirm() {
-    dispatch('confirm');
+    onconfirm?.();
   }
 
   function handleCancel() {
-    dispatch('cancel');
+    oncancel?.();
   }
 
   function handleBackdropClick(event: MouseEvent) {

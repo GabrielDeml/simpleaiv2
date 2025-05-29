@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import type { LayerType } from '$lib/nn-designer/types';
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
   
   export let layerType: LayerType | null = null;
   export let isOpen = false;
   
-  const dispatch = createEventDispatcher();
+  // Event callback (Svelte 5 style)
+  export let onclose: (() => void) | undefined = undefined;
   
   $: layerDef = layerType ? layerDefinitions[layerType] : null;
   
   function close() {
-    dispatch('close');
+    onclose?.();
   }
   
   function handleBackdropClick(e: MouseEvent) {

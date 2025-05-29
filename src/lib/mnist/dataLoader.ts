@@ -23,7 +23,7 @@ const IMAGE_SIZE = IMAGE_HEIGHT * IMAGE_WIDTH; // 784 pixels per image (flattene
 const NUM_CLASSES = 10;           // Digits 0-9
 const NUM_DATASET_ELEMENTS = 65000; // Total images in this web-optimized version
 const NUM_TRAIN_ELEMENTS = 55000;   // Training set size (slightly less than standard 60K)
-const NUM_TEST_ELEMENTS = NUM_DATASET_ELEMENTS - NUM_TRAIN_ELEMENTS; // 10,000 test images
+// const NUM_TEST_ELEMENTS = NUM_DATASET_ELEMENTS - NUM_TRAIN_ELEMENTS; // 10,000 test images (unused)
 
 // ========== Dataset URLs ==========
 /**

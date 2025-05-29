@@ -2,9 +2,9 @@ import * as tf from '@tensorflow/tfjs';
 
 // Create base layer class if it doesn't exist
 const LayerClass = tf.layers?.Layer || class Layer {
-  constructor(config?: any) {}
-  build(inputShape: tf.Shape | tf.Shape[]): void {}
-  call(inputs: tf.Tensor | tf.Tensor[], kwargs?: any): tf.Tensor | tf.Tensor[] {
+  constructor(_config?: any) {}
+  build(_inputShape: tf.Shape | tf.Shape[]): void {}
+  call(_inputs: tf.Tensor | tf.Tensor[], _kwargs?: any): tf.Tensor | tf.Tensor[] {
     throw new Error('Not implemented');
   }
   computeOutputShape(inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {

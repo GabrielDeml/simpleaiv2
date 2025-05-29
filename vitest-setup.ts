@@ -20,8 +20,8 @@ vi.mock('@tensorflow/tfjs', () => ({
 	})),
 	sequential: vi.fn(() => {
 		const mockModel = {
-			layers: [],
-			add: vi.fn((layer) => {
+			layers: [] as any[],
+			add: vi.fn((layer: any) => {
 				mockModel.layers.push(layer);
 			}),
 			compile: vi.fn(),
@@ -35,9 +35,9 @@ vi.mock('@tensorflow/tfjs', () => ({
 	}),
 	layers: {
 		Layer: class MockLayer {
-			constructor(config?: any) {}
-			build(inputShape: any): void {}
-			call(inputs: any, kwargs?: any): any {
+			constructor(_config?: any) {}
+			build(_inputShape: any): void {}
+			call(inputs: any, _kwargs?: any): any {
 				return inputs;
 			}
 			computeOutputShape(inputShape: any): any {
@@ -90,7 +90,7 @@ vi.mock('@tensorflow/tfjs', () => ({
 	tidy: vi.fn((fn) => fn()),
 	keep: vi.fn((tensor) => tensor),
 	// Tensor creation functions
-	range: vi.fn((start, limit, delta, dtype) => ({
+	range: vi.fn((start, limit, delta, _dtype) => ({
 		dispose: vi.fn(),
 		shape: [Math.ceil((limit - start) / (delta || 1))]
 	})),
@@ -98,19 +98,19 @@ vi.mock('@tensorflow/tfjs', () => ({
 		...tensor, 
 		shape: tensor.shape ? [...tensor.shape.slice(0, axis), 1, ...tensor.shape.slice(axis)] : [1]
 	})),
-	stack: vi.fn((tensors, axis) => ({ 
+	stack: vi.fn((tensors, _axis) => ({ 
 		dispose: vi.fn(),
 		shape: tensors[0]?.shape || [1]
 	})),
 	reshape: vi.fn((tensor, shape) => ({ ...tensor, shape })),
 	// Math functions
 	exp: vi.fn((x) => x),
-	mul: vi.fn((a, b) => a),
-	div: vi.fn((a, b) => a),
+	mul: vi.fn((a, _b) => a),
+	div: vi.fn((a, _b) => a),
 	sin: vi.fn((x) => x),
 	cos: vi.fn((x) => x),
 	sqrt: vi.fn((x) => x),
-	scalar: vi.fn((value) => ({ dispose: vi.fn(), shape: [] })),
+	scalar: vi.fn((_value) => ({ dispose: vi.fn(), shape: [] })),
 	// Tensor operations
 	randomNormal: vi.fn((shape) => ({ 
 		dispose: vi.fn(), 
@@ -151,11 +151,11 @@ vi.mock('@tensorflow/tfjs', () => ({
 			}
 			// Return mock 3D array
 			const [d1, d2, d3] = shape || [1, 1, 1];
-			const result = [];
+			const result: number[][][] = [];
 			for (let i = 0; i < d1; i++) {
-				const batch = [];
+				const batch: number[][] = [];
 				for (let j = 0; j < d2; j++) {
-					const seq = [];
+					const seq: number[] = [];
 					for (let k = 0; k < d3; k++) {
 						seq.push(0.1);
 					}
@@ -186,18 +186,18 @@ vi.mock('@tensorflow/tfjs', () => ({
 			};
 		})
 	})),
-	slice: vi.fn((tensor, begin, size) => ({ 
+	slice: vi.fn((tensor, _begin, size) => ({ 
 		...tensor,
 		shape: size || tensor.shape
 	})),
-	add: vi.fn((a, b) => a),
+	add: vi.fn((a, _b) => a),
 	transpose: vi.fn((tensor, perm) => ({ 
 		...tensor,
 		shape: perm ? perm.map((i: any) => tensor.shape[i]) : tensor.shape
 	})),
-	matMul: vi.fn((a, b) => a),
+	matMul: vi.fn((a, _b) => a),
 	softmax: vi.fn((tensor) => tensor),
-	dropout: vi.fn((tensor, rate) => tensor),
+	dropout: vi.fn((tensor, _rate) => tensor),
 	serialization: {
 		registerClass: vi.fn()
 	},
@@ -221,14 +221,14 @@ vi.mock('@tensorflow/tfjs', () => ({
 				// For 2D output, return appropriate mock data
 				if (newShape.length === 2) {
 					const [batch, features] = newShape;
-					const result = [];
+					const result: number[][] = [];
 					
 					// Handle tensor3d input data
 					if (tensor.arraySync) {
 						const inputData = tensor.arraySync();
 						// Average across sequence dimension (axis 1)
 						for (let b = 0; b < batch; b++) {
-							const row = [];
+							const row: number[] = [];
 							for (let f = 0; f < features; f++) {
 								let sum = 0;
 								const seqLength = tensor.shape[1];
@@ -244,7 +244,7 @@ vi.mock('@tensorflow/tfjs', () => ({
 					
 					// Default mock data for other tests
 					for (let b = 0; b < batch; b++) {
-						const row = [];
+						const row: number[] = [];
 						for (let f = 0; f < features; f++) {
 							// Mock average values based on test expectations
 							if (b === 0) {
@@ -270,11 +270,11 @@ vi.mock('@tensorflow/tfjs', () => ({
 		...tensor,
 		dispose: vi.fn()
 	})),
-	sum: vi.fn((tensor) => ({
+	sum: vi.fn((_tensor) => ({
 		dispose: vi.fn(),
 		shape: []
 	})),
-	grad: vi.fn((fn) => (input) => {
+	grad: vi.fn((_fn) => (input: any) => {
 		// Mock gradient computation
 		const shape = input.shape;
 		const size = shape.reduce((a: any, b: any) => a * b, 1);
@@ -291,12 +291,12 @@ vi.mock('@tensorflow/tfjs', () => ({
 				// Convert flat array to nested array for 3D tensor
 				if (shape.length === 3) {
 					const [batch, seq, features] = shape;
-					const result = [];
+					const result: number[][][] = [];
 					let idx = 0;
 					for (let b = 0; b < batch; b++) {
-						const batchData = [];
+						const batchData: number[][] = [];
 						for (let s = 0; s < seq; s++) {
-							const seqData = [];
+							const seqData: number[] = [];
 							for (let f = 0; f < features; f++) {
 								seqData.push(gradData[idx++]);
 							}

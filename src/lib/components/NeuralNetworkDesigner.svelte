@@ -12,7 +12,6 @@
   // State management and core functionality
   import { isTraining, layers, resetTraining, trainingConfig, selectedDataset } from '$lib/nn-designer/stores';
   import { trainingManager } from '$lib/nn-designer/trainingManager';
-  import { modelBuilder } from '$lib/nn-designer/modelBuilder';
   import { colabExporter } from '$lib/nn-designer/colabExporter';
   import { showSuccess, showError } from '$lib/stores/toastStore';
   import ConfirmDialog from './ConfirmDialog.svelte';
@@ -80,15 +79,6 @@
     };
   });
 
-  // Export trained model to downloadable files
-  async function handleExport() {
-    try {
-      await modelBuilder.exportModel(); // Export as TensorFlow.js format
-      showSuccess('Model exported successfully!');
-    } catch (error) {
-      showError(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
 
   // Export model configuration as JSON
   function handleExportJSON() {
@@ -244,7 +234,7 @@
   
   <!-- Training progress modal (shown during training) -->
   {#if showTrainingProgress}
-    <TrainingProgress on:close={() => showTrainingProgress = false} />
+    <TrainingProgress onclose={() => showTrainingProgress = false} />
   {/if}
   
   <!-- Confirmation dialogs -->
@@ -255,8 +245,8 @@
       confirmText="Clear"
       cancelText="Cancel"
       type="danger"
-      on:confirm={confirmClear}
-      on:cancel={() => showClearConfirm = false}
+      onconfirm={confirmClear}
+      oncancel={() => showClearConfirm = false}
     />
   {/if}
   
@@ -271,12 +261,12 @@
         "Train your model with GPU acceleration",
         "Evaluate performance and visualize results"
       ]}
-      on:close={() => showColabInstructions = false}
+      onclose={() => showColabInstructions = false}
     />
   {/if}
   
   <!-- Help modal -->
-  <HelpModal isOpen={showHelp} on:close={() => showHelp = false} />
+  <HelpModal isOpen={showHelp} onclose={() => showHelp = false} />
 </div>
 
 <!-- Toast notifications -->

@@ -1,14 +1,13 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-
   export let title: string;
   export let instructions: string[];
   export let showCloseButton: boolean = true;
 
-  const dispatch = createEventDispatcher();
+  // Event callback (Svelte 5 style)
+  export let onclose: (() => void) | undefined = undefined;
 
   function handleClose() {
-    dispatch('close');
+    onclose?.();
   }
 
   function handleBackdropClick(event: MouseEvent) {

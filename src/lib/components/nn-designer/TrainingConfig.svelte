@@ -14,41 +14,9 @@
    * - Grouped related settings (optimizer, loss, etc.)
    */
   
-  import { trainingConfig, layers, selectedDataset } from '$lib/nn-designer/stores';
-  import { colabExporter } from '$lib/nn-designer/colabExporter';
-  import { showError } from '$lib/stores/toastStore';
+  import { trainingConfig } from '$lib/nn-designer/stores';
   import { parameterHelp } from '$lib/nn-designer/parameterHelp';
   import Tooltip from '$lib/components/Tooltip.svelte';
-
-  /**
-   * Exports the current model configuration to a Google Colab notebook.
-   * Downloads a .ipynb file that can be opened directly in Colab.
-   */
-  function exportToColab() {
-    try {
-      const downloadUrl = colabExporter.generateDownloadLink(
-        $layers,
-        $trainingConfig,
-        $selectedDataset
-      );
-      
-      const filename = colabExporter.generateFilename($selectedDataset);
-      
-      // Create download link and trigger download
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up blob URL
-      URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Failed to export to Colab:', error);
-      showError('Failed to export notebook. Please check your model configuration.');
-    }
-  }
 </script>
 
 <!-- Training configuration card -->

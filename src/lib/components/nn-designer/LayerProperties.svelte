@@ -17,7 +17,7 @@
   import { layers, selectedLayerId, updateLayer } from '$lib/nn-designer/stores';
   import { layerDefinitions } from '$lib/nn-designer/layerDefinitions';
   import { parameterHelp } from '$lib/nn-designer/parameterHelp';
-  import { validateLayer, sanitizeParameterValue, getParameterDescription } from '$lib/nn-designer/parameterValidation';
+  import { validateLayer, sanitizeParameterValue } from '$lib/nn-designer/parameterValidation';
   import type { LayerValidationResult } from '$lib/nn-designer/parameterValidation';
   import Tooltip from '$lib/components/Tooltip.svelte';
   

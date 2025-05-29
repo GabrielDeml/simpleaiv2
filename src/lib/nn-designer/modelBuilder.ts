@@ -261,8 +261,8 @@ export class ModelBuilder {
               trainingHistory.update(h => ({
                 loss: [...h.loss, logs.loss as number],
                 valLoss: [...h.valLoss, logs.val_loss as number || 0],
-                accuracy: [...h.accuracy, logs.acc as number],
-                valAccuracy: [...h.valAccuracy, logs.val_acc as number || 0]
+                accuracy: [...h.accuracy, logs.accuracy as number || 0],
+                valAccuracy: [...h.valAccuracy, logs.val_accuracy as number || 0]
               }));
 
               if (onEpochEnd) {

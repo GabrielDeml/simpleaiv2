@@ -48,8 +48,9 @@ export class TrainingManager {
    */
   async startTraining() {
     try {
-      // Get current configuration
-      const layerConfigs = get(layers);
+      // Get current configuration (work with a copy to avoid mutation)
+      const originalLayers = get(layers);
+      let layerConfigs = [...originalLayers];
       const config = get(trainingConfig);
       const datasetName = get(selectedDataset);
       
@@ -68,7 +69,7 @@ export class TrainingManager {
         // Auto-add output layer with correct number of units for the dataset
         // This ensures the model can output predictions for all classes
         console.warn(`Adding output layer for ${numClasses}-class classification`);
-        layerConfigs.push({
+        layerConfigs = [...layerConfigs, {
           id: 'output-auto',
           type: 'dense',
           name: 'Output',
@@ -78,7 +79,7 @@ export class TrainingManager {
             useBias: true,
             kernelInitializer: 'glorotUniform'
           }
-        });
+        }];
       }
       
       // Ensure we have data loaded before training

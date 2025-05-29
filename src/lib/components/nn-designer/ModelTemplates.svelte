@@ -98,8 +98,8 @@
       confirmText="Load"
       cancelText="Cancel"
       type="warning"
-      on:confirm={confirmLoad}
-      on:cancel={cancelLoad}
+      onconfirm={confirmLoad}
+      oncancel={cancelLoad}
     />
   {/if}
 </div>

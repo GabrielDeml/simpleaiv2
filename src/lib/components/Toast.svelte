@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
 
   export let type: 'success' | 'error' | 'info' = 'info';
   export let message: string;
   export let duration: number = 4000;
   export let autoClose: boolean = true;
 
-  const dispatch = createEventDispatcher();
+  // Event callback (Svelte 5 style)
+  export let onclose: (() => void) | undefined = undefined;
+  
   let visible = false;
 
   onMount(() => {
@@ -22,7 +24,7 @@
   function close() {
     visible = false;
     setTimeout(() => {
-      dispatch('close');
+      onclose?.();
     }, 300);
   }
 

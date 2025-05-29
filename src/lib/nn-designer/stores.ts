@@ -186,8 +186,8 @@ export function moveLayer(layerId: string, direction: 'up' | 'down') {
       return currentLayers;
     }
     
-    // Don't allow moving before input layer (input must always be first)
-    if (newIndex === 0 && currentLayers[0].type === 'input') {
+    // Don't allow moving non-input layers to position 0 if there's an input layer
+    if (newIndex === 0 && currentLayers[0].type === 'input' && currentLayers[index].type !== 'input') {
       return currentLayers;
     }
     

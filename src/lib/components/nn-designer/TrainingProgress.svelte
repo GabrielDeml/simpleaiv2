@@ -14,20 +14,19 @@
    * - Modal interface with backdrop click to close
    */
   
-  import { createEventDispatcher } from 'svelte';
   import { isTraining, currentEpoch, trainingHistory, trainingConfig } from '$lib/nn-designer/stores';
   import MetricsChart from './MetricsChart.svelte';
   import { trainingManager } from '$lib/nn-designer/trainingManager';
   
-  // Event dispatcher for parent component communication
-  const dispatch = createEventDispatcher();
+  // Event callback (Svelte 5 style)
+  export let onclose: (() => void) | undefined = undefined;
   
   /**
    * Handles modal close action
-   * Dispatches 'close' event to parent component
+   * Calls the onclose callback if provided
    */
   function handleClose() {
-    dispatch('close');
+    onclose?.();
   }
   
   /**

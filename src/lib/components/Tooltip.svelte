@@ -5,8 +5,6 @@
   
   let showTooltip = false;
   let timeoutId: number;
-  let tooltipElement: HTMLDivElement;
-  let triggerElement: HTMLDivElement;
   
   function handleMouseEnter() {
     timeoutId = window.setTimeout(() => {
@@ -22,7 +20,6 @@
 
 <div 
   class="tooltip-trigger" 
-  bind:this={triggerElement}
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
   role="group"
@@ -31,7 +28,6 @@
   {#if showTooltip && content}
     <div 
       class="tooltip tooltip-{position}" 
-      bind:this={tooltipElement}
       role="tooltip"
     >
       {content}
